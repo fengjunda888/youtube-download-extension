@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YouTube Downloader</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="mark">YT</div>
+        <div>
+          <h1>yt-dlp 下载</h1>
+          <p>支持多任务、合集和画质选择</p>
+        </div>
+      </header>
+
+      <section class="panel">
+        <label for="url">视频链接</label>
+        <textarea id="url" rows="3" spellcheck="false"></textarea>
+
+        <label for="downloadDir">下载路径</label>
+        <input id="downloadDir" type="text" spellcheck="false">
+
+        <div class="grid">
+          <div>
+            <label for="quality">画质</label>
+            <select id="quality">
+              <option value="best-mp4">最佳单文件 MP4</option>
+              <option value="1080">最高 1080p</option>
+              <option value="720">最高 720p</option>
+              <option value="480">最高 480p</option>
+              <option value="audio">仅音频 MP3</option>
+            </select>
+          </div>
+          <div>
+            <label for="playlistMode">范围</label>
+            <select id="playlistMode">
+              <option value="single">只下载当前视频</option>
+              <option value="playlist">下载整个合集</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <button id="download" type="button">加入下载</button>
+      <p id="status" role="status">正在读取当前标签页...</p>
+
+      <section class="tasks">
+        <div class="tasksHead">
+          <h2>下载任务</h2>
+          <button id="refresh" type="button" class="ghost">刷新</button>
+        </div>
+        <div id="tasksList" class="tasksList"></div>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

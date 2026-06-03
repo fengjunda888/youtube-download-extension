@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "YouTubeYtDlpHost/1.0.0": {
+        "runtime": {
+          "YouTubeYtDlpHost.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "YouTubeYtDlpHost/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
