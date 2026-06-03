@@ -1,0 +1,14 @@
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\bin\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.exe
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\bin\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.deps.json
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\bin\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.runtimeconfig.json
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\bin\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.dll
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\bin\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.pdb
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\native-host.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\native-host.AssemblyInfoInputs.cache
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\native-host.AssemblyInfo.cs
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\native-host.csproj.CoreCompileInputs.cache
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.dll
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\refint\YouTubeYtDlpHost.dll
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\YouTubeYtDlpHost.pdb
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\native-host.genruntimeconfig.cache
+C:\Users\fengj\Desktop\冯俊达\日语\youtube-yt-dlp-extension\native-host\obj\Release\net8.0-windows\win-x64\ref\YouTubeYtDlpHost.dll
