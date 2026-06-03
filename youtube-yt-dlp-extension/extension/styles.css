@@ -34,14 +34,9 @@ header {
 }
 
 .mark {
-  display: grid;
   width: 42px;
   height: 42px;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--accent);
-  color: white;
-  font-weight: 800;
+  flex: 0 0 auto;
 }
 
 h1 {
