@@ -2,7 +2,8 @@
 
 A local Chrome extension for sending YouTube videos to `yt-dlp` from the browser popup. It uses Chrome Native Messaging to start a small Windows native host on demand, so there is no always-running local HTTP server and no PowerShell window to keep open.
 
-![Popup screenshot](docs/screenshots/popup-ready.png)
+![Ready state](docs/screenshots/popup-ready.png)
+![Task list](docs/screenshots/popup-tasks.png)
 
 ## Features
 
