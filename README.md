@@ -2,6 +2,10 @@
 
 A local Chrome extension for sending YouTube videos to `yt-dlp` from the browser popup. It uses Chrome Native Messaging to start a small Windows native host on demand, so there is no always-running local HTTP server and no PowerShell window to keep open.
 
+中文：一个基于 `yt-dlp` 的 YouTube 视频下载 Chrome 扩展，支持 YouTube 视频下载、YouTube 合集下载、多任务下载、画质选择、下载进度显示和音频 MP3 提取。
+
+Keywords: YouTube download extension, YouTube video downloader, yt-dlp Chrome extension, youtube-dl, playlist downloader, 视频下载, YouTube 视频下载, 油管视频下载, YouTube 下载插件, Chrome 下载扩展.
+
 ![Ready state](docs/screenshots/popup-ready.png)
 ![Task list](docs/screenshots/popup-tasks.png)
 
