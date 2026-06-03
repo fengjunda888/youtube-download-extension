@@ -1,4 +1,4 @@
-const defaultDownloadDir = "C:\\Users\\fengj\\Desktop\\冯俊达\\youtube videos";
+const defaultDownloadDir = "%USERPROFILE%\\Desktop\\youtube videos";
 const downloadDirStorageKey = "ytDlpDownloadDir";
 
 const urlInput = document.getElementById("url");

@@ -1,39 +1,114 @@
-# YouTube yt-dlp Chrome Extension
+# YouTube yt-dlp Downloader
 
-目标：打开 YouTube 视频页，点 Chrome 扩展按钮，直接调用本机 `yt-dlp` 下载。
+A local Chrome extension for sending YouTube videos to `yt-dlp` from the browser popup. It uses Chrome Native Messaging to start a small Windows native host on demand, so there is no always-running local HTTP server and no PowerShell window to keep open.
 
-支持：
+![Popup screenshot](docs/screenshots/popup-ready.png)
 
-- 多个视频同时下载
-- 下载进度、速度和 ETA
-- 当前视频 / 整个合集选择
-- 最佳 MP4、1080p、720p、480p、仅音频 MP3
+## Features
 
-默认下载目录：
+- Start downloads directly from the current YouTube tab.
+- Track multiple concurrent download tasks in the popup.
+- Show task status, progress, speed, ETA, and recent `yt-dlp` output.
+- Download the current video or an entire playlist.
+- Choose quality presets: best single-file MP4, up to 1080p, 720p, 480p, or MP3 audio.
+- Cancel running tasks.
+- Store logs in a `yt-dlp-logs` folder inside the chosen download directory.
 
-```text
-C:\Users\fengj\Desktop\冯俊达\youtube videos
+## Important limitations
+
+This project does not bypass YouTube access controls. It can only download videos that your network, account, cookies, and `yt-dlp` are allowed to access. Members-only videos, private videos, deleted videos, region-blocked videos, or videos requiring a permission your account does not have will still fail.
+
+Use this tool only for content you have the right to download.
+
+## Requirements
+
+- Windows 10 or later
+- Google Chrome or another Chromium browser that supports Native Messaging
+- .NET 8 SDK, used to build the native host
+- `yt-dlp` available on `PATH`, or passed to the installer with `-YtDlpPath`
+
+Install `yt-dlp` with Python:
+
+```powershell
+python -m pip install -U yt-dlp
 ```
 
-## 一次性安装
+## Installation
 
-1. Chrome 打开 `chrome://extensions/`。
-2. 打开 `开发者模式`。
-3. 点 `加载已解压的扩展程序`。
-4. 选择 `extension` 文件夹。
-5. 双击 `Install-NativeHost.bat`。
-6. 重启 Chrome，回到 `chrome://extensions/` 点扩展的刷新按钮。
+1. Clone or download this repository.
+2. Open Chrome and go to `chrome://extensions/`.
+3. Enable `Developer mode`.
+4. Click `Load unpacked`.
+5. Select the `extension` folder in this repository.
+6. Double-click `Install-NativeHost.bat`.
+7. Restart Chrome, then reload the extension from `chrome://extensions/`.
 
-扩展使用固定 ID：
+The extension uses a fixed development extension ID:
 
 ```text
 lgdfehfacdnpknkphkfmmollklciaaal
 ```
 
-安装后不需要保持 PowerShell 窗口打开。native host 会在点击扩展下载时由 Chrome 按需启动。
+The installer writes the Chrome Native Messaging manifest under the current Windows user:
 
-## 使用
+```text
+HKCU\Software\Google\Chrome\NativeMessagingHosts\com.fengj.youtube_ytdlp
+```
 
-打开 YouTube 视频页，点扩展图标，确认下载路径、画质和范围，点 `加入下载`。
+## Usage
 
-下载日志保存在下载目录下的 `yt-dlp-logs` 文件夹。
+1. Open a YouTube video or playlist page.
+2. Open the extension popup.
+3. Confirm the URL and download directory.
+4. Choose a quality preset.
+5. Choose `Current video` or `Entire playlist`.
+6. Click `Add download`.
+
+The default download directory is:
+
+```text
+%USERPROFILE%\Desktop\youtube videos
+```
+
+## Build manually
+
+Build the native host:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\native-host\build-host.ps1
+```
+
+Install the native host:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\native-host\install-native-host.ps1
+```
+
+If `yt-dlp` is not on `PATH`, pass the executable path:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\native-host\install-native-host.ps1 -YtDlpPath "C:\path\to\yt-dlp.exe"
+```
+
+## Release packaging
+
+Create a release zip:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\package-release.ps1
+```
+
+The zip is written to `dist/`.
+
+## Project layout
+
+```text
+extension/      Chrome extension UI and background script
+native-host/    .NET Native Messaging host
+scripts/        Release packaging scripts
+docs/           Screenshots and documentation assets
+```
+
+## License
+
+MIT

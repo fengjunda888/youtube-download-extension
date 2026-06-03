@@ -1,0 +1,37 @@
+# Build outputs
+native-host/bin/
+native-host/obj/
+native-host/publish/
+
+# Release artifacts
+dist/
+*.zip
+*.crx
+*.pem
+
+# Runtime artifacts
+yt-dlp-logs/
+*.part
+*.ytdl
+*.tmp
+
+# Downloaded media
+*.mp4
+*.mkv
+*.webm
+*.m4a
+*.mp3
+*.opus
+*.wav
+
+# Local configuration
+.env
+*.local.json
+cookies*.txt
+youtube.com_cookies.txt
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

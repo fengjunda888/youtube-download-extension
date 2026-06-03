@@ -4,7 +4,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-const string DefaultDownloadDir = @"C:\Users\fengj\Desktop\冯俊达\youtube videos";
+static readonly string DefaultDownloadDir = Path.Combine(
+  Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+  "youtube videos"
+);
 
 var tasks = new ConcurrentDictionary<string, DownloadTask>();
 var input = Console.OpenStandardInput();
@@ -275,8 +278,7 @@ static string ResolveYtDlpPath()
     return envPath;
   }
 
-  var knownPath = @"C:\Users\fengj\AppData\Local\Programs\Python\Python313\Scripts\yt-dlp.exe";
-  return File.Exists(knownPath) ? knownPath : "yt-dlp";
+  return "yt-dlp";
 }
 
 static string? ReadMessage(Stream stream)
