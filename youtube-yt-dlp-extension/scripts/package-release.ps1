@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$Version = "0.1.0",
   [string]$OutDir = (Join-Path $PSScriptRoot "..\dist")
 )
@@ -10,11 +10,15 @@ $releaseName = "youtube-yt-dlp-downloader-$Version"
 $staging = Join-Path $OutDir $releaseName
 $zipPath = Join-Path $OutDir "$releaseName.zip"
 
-if (Test-Path $staging) {
-  Remove-Item -LiteralPath $staging -Recurse -Force
+if (-not (Test-Path $OutDir)) {
+  New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 }
-New-Item -ItemType Directory -Path $staging -Force | Out-Null
-New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
+
+if (Test-Path $staging) {
+  throw "Staging directory already exists: $staging. Remove it manually before packaging again."
+}
+
+New-Item -ItemType Directory -Path $staging | Out-Null
 
 dotnet publish (Join-Path $root "native-host\native-host.csproj") -c Release -r win-x64 --self-contained false -o (Join-Path $staging "native-host\publish")
 

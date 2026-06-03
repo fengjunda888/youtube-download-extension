@@ -4,11 +4,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-static readonly string DefaultDownloadDir = Path.Combine(
-  Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-  "youtube videos"
-);
-
 var tasks = new ConcurrentDictionary<string, DownloadTask>();
 var input = Console.OpenStandardInput();
 var output = Console.OpenStandardOutput();
@@ -265,7 +260,11 @@ static bool IsYouTubeUrl(string value)
 
 static string ResolveDownloadDir(string? requestedDir)
 {
-  var dir = string.IsNullOrWhiteSpace(requestedDir) ? DefaultDownloadDir : requestedDir!;
+  var defaultDownloadDir = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+    "youtube videos"
+  );
+  var dir = string.IsNullOrWhiteSpace(requestedDir) ? defaultDownloadDir : requestedDir!;
   Directory.CreateDirectory(dir);
   return dir;
 }

@@ -1,4 +1,4 @@
-const defaultDownloadDir = "%USERPROFILE%\\Desktop\\youtube videos";
+﻿const defaultDownloadDir = "%USERPROFILE%\\Desktop\\youtube videos";
 const downloadDirStorageKey = "ytDlpDownloadDir";
 
 const urlInput = document.getElementById("url");
@@ -9,6 +9,29 @@ const statusText = document.getElementById("status");
 const downloadButton = document.getElementById("download");
 const refreshButton = document.getElementById("refresh");
 const tasksList = document.getElementById("tasksList");
+
+const previewTasks = [
+  {
+    id: "demo-running",
+    status: "running",
+    percent: 64.3,
+    quality: "1080",
+    playlistMode: "single",
+    speed: "5.2MiB/s",
+    eta: "00:18",
+    lastLine: "[download] 64.3% of 152.34MiB at 5.2MiB/s ETA 00:18"
+  },
+  {
+    id: "demo-done",
+    status: "done",
+    percent: 100,
+    quality: "audio",
+    playlistMode: "playlist",
+    speed: "",
+    eta: "",
+    lastLine: "[ExtractAudio] Destination: sample-track.mp3"
+  }
+];
 
 let pollTimer;
 
@@ -177,6 +200,17 @@ function escapeHtml(value) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const previewMode = new URLSearchParams(window.location.search).get("preview");
+  if (previewMode) {
+    urlInput.value = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    downloadDirInput.value = defaultDownloadDir;
+    qualityInput.value = "1080";
+    playlistModeInput.value = "single";
+    setStatus("准备好了。", "success");
+    renderTasks(previewMode === "tasks" ? previewTasks : []);
+    return;
+  }
+
   const currentUrl = await getActiveTabUrl();
   const savedDir = localStorage.getItem(downloadDirStorageKey);
   urlInput.value = currentUrl;
