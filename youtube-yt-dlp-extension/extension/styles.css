@@ -44,9 +44,57 @@ h1 {
   font-size: 18px;
 }
 
+.titleBlock {
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.version {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #edf1f7;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 p {
   margin: 3px 0 0;
   color: var(--muted);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab {
+  height: 34px;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+}
+
+.tab.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
 }
 
 .panel {
@@ -95,6 +143,11 @@ select {
 }
 
 textarea + label {
+  margin-top: 12px;
+}
+
+input + label,
+select + label {
   margin-top: 12px;
 }
 
@@ -155,10 +208,29 @@ button.small {
   margin-top: 14px;
 }
 
+.selection {
+  margin-top: 14px;
+}
+
+.sectionHead,
 .tasksHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.selectAll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.selectAll input {
+  width: 16px;
+  height: 16px;
 }
 
 h2 {
@@ -166,6 +238,7 @@ h2 {
   font-size: 15px;
 }
 
+.videoList,
 .tasksList {
   display: grid;
   gap: 10px;
@@ -184,6 +257,40 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
+}
+
+.videoItem {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+
+.videoItem input {
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+
+.videoBody {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.videoBody strong,
+.videoBody span {
+  overflow-wrap: anywhere;
+}
+
+.videoBody span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .taskTop {

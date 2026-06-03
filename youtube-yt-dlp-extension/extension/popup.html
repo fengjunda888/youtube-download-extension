@@ -10,49 +10,62 @@
     <main>
       <header>
         <img class="mark" src="icons/icon-48.png" alt="" aria-hidden="true">
-        <div>
-          <h1>yt-dlp 下载</h1>
-          <p>支持多任务、合集和画质选择</p>
+        <div class="titleBlock">
+          <div class="titleRow">
+            <h1>yt-dlp 下载</h1>
+            <span id="version" class="version">v0.1.0</span>
+          </div>
+          <p>先解析视频，再选择下载</p>
         </div>
       </header>
 
-      <section class="panel">
-        <label for="url">视频链接</label>
-        <textarea id="url" rows="3" spellcheck="false"></textarea>
+      <nav class="tabs" aria-label="页面">
+        <button id="resolveTab" class="tab active" type="button" data-view="resolve">解析选择</button>
+        <button id="tasksTab" class="tab" type="button" data-view="tasks">下载任务</button>
+      </nav>
 
-        <label for="downloadDir">下载路径</label>
-        <input id="downloadDir" type="text" spellcheck="false">
+      <section id="resolveView" class="view active">
+        <section class="panel">
+          <label for="url">视频或合集链接</label>
+          <textarea id="url" rows="3" spellcheck="false"></textarea>
 
-        <div class="grid">
-          <div>
-            <label for="quality">画质</label>
-            <select id="quality">
-              <option value="best-mp4">最佳单文件 MP4</option>
-              <option value="1080">最高 1080p</option>
-              <option value="720">最高 720p</option>
-              <option value="480">最高 480p</option>
-              <option value="audio">仅音频 MP3</option>
-            </select>
+          <label for="downloadDir">下载路径</label>
+          <input id="downloadDir" type="text" spellcheck="false">
+
+          <label for="quality">画质</label>
+          <select id="quality">
+            <option value="best-mp4">最佳单文件 MP4</option>
+            <option value="1080">最高 1080p</option>
+            <option value="720">最高 720p</option>
+            <option value="480">最高 480p</option>
+            <option value="audio">仅音频 MP3</option>
+          </select>
+        </section>
+
+        <button id="resolve" type="button">解析链接</button>
+        <p id="status" role="status">正在读取当前标签页...</p>
+
+        <section class="selection">
+          <div class="sectionHead">
+            <div>
+              <h2>解析结果</h2>
+              <p id="resolveSummary">还没有解析视频。</p>
+            </div>
+            <label class="selectAll"><input id="selectAll" type="checkbox"> 全选</label>
           </div>
-          <div>
-            <label for="playlistMode">范围</label>
-            <select id="playlistMode">
-              <option value="single">只下载当前视频</option>
-              <option value="playlist">下载整个合集</option>
-            </select>
-          </div>
-        </div>
+          <div id="videoList" class="videoList"></div>
+          <button id="downloadSelected" type="button" disabled>下载选中视频</button>
+        </section>
       </section>
 
-      <button id="download" type="button">加入下载</button>
-      <p id="status" role="status">正在读取当前标签页...</p>
-
-      <section class="tasks">
-        <div class="tasksHead">
-          <h2>下载任务</h2>
-          <button id="refresh" type="button" class="ghost">刷新</button>
-        </div>
-        <div id="tasksList" class="tasksList"></div>
+      <section id="tasksView" class="view">
+        <section class="tasks">
+          <div class="tasksHead">
+            <h2>下载任务</h2>
+            <button id="refresh" type="button" class="ghost">刷新</button>
+          </div>
+          <div id="tasksList" class="tasksList"></div>
+        </section>
       </section>
     </main>
     <script src="popup.js"></script>

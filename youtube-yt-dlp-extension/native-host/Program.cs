@@ -25,6 +25,9 @@ while (true)
 
     switch (action)
     {
+      case "resolve":
+        WriteResponse(output, outputLock, WithRequestId(requestId, ResolveVideos(root)));
+        break;
       case "start":
         WriteResponse(output, outputLock, WithRequestId(requestId, StartDownload(root, tasks)));
         break;
@@ -105,6 +108,158 @@ static object StartDownload(JsonElement root, ConcurrentDictionary<string, Downl
     task.Message = ex.Message;
     return new { ok = false, error = ex.Message, task };
   }
+}
+
+static object ResolveVideos(JsonElement root)
+{
+  var url = root.GetProperty("url").GetString() ?? "";
+  if (!IsYouTubeUrl(url))
+  {
+    return new { ok = false, error = "Only YouTube URLs are supported." };
+  }
+
+  var psi = new ProcessStartInfo
+  {
+    FileName = ResolveYtDlpPath(),
+    UseShellExecute = false,
+    RedirectStandardOutput = true,
+    RedirectStandardError = true,
+    CreateNoWindow = true
+  };
+
+  foreach (var arg in new[]
+  {
+    "--ignore-config",
+    "--dump-single-json",
+    "--flat-playlist",
+    "--skip-download",
+    "--no-warnings",
+    url
+  })
+  {
+    psi.ArgumentList.Add(arg);
+  }
+
+  try
+  {
+    using var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start yt-dlp.");
+    var stdoutTask = process.StandardOutput.ReadToEndAsync();
+    var stderrTask = process.StandardError.ReadToEndAsync();
+    if (!process.WaitForExit(60000))
+    {
+      process.Kill(entireProcessTree: true);
+      return new { ok = false, error = "Timed out while resolving the URL." };
+    }
+
+    var stdout = stdoutTask.GetAwaiter().GetResult();
+    var stderr = stderrTask.GetAwaiter().GetResult();
+    if (process.ExitCode != 0)
+    {
+      return new { ok = false, error = string.IsNullOrWhiteSpace(stderr) ? $"yt-dlp exited with code {process.ExitCode}" : stderr.Trim() };
+    }
+
+    using var doc = JsonDocument.Parse(stdout);
+    var rootJson = doc.RootElement;
+    var title = GetString(rootJson, "title");
+    var sourceType = rootJson.TryGetProperty("entries", out var entries) && entries.ValueKind == JsonValueKind.Array ? "playlist" : "video";
+    var videos = new List<ResolvedVideo>();
+
+    if (sourceType == "playlist")
+    {
+      foreach (var entry in entries.EnumerateArray())
+      {
+        if (entry.ValueKind != JsonValueKind.Object)
+        {
+          continue;
+        }
+        var videoUrl = ResolveEntryUrl(entry);
+        if (string.IsNullOrWhiteSpace(videoUrl))
+        {
+          continue;
+        }
+        videos.Add(new ResolvedVideo
+        {
+          Id = GetString(entry, "id") ?? "",
+          Url = videoUrl,
+          Title = GetString(entry, "title") ?? videoUrl,
+          Uploader = GetString(entry, "uploader") ?? GetString(entry, "channel") ?? "",
+          Duration = GetDuration(entry),
+          Index = GetInt(entry, "playlist_index") ?? videos.Count + 1
+        });
+      }
+    }
+    else
+    {
+      videos.Add(new ResolvedVideo
+      {
+        Id = GetString(rootJson, "id") ?? "",
+        Url = GetString(rootJson, "webpage_url") ?? url,
+        Title = title ?? url,
+        Uploader = GetString(rootJson, "uploader") ?? GetString(rootJson, "channel") ?? "",
+        Duration = GetDuration(rootJson),
+        Index = 1
+      });
+    }
+
+    return new { ok = true, title = title ?? url, sourceType, count = videos.Count, videos };
+  }
+  catch (Exception ex)
+  {
+    return new { ok = false, error = ex.Message };
+  }
+}
+
+static string? ResolveEntryUrl(JsonElement entry)
+{
+  var webpageUrl = GetString(entry, "webpage_url");
+  if (!string.IsNullOrWhiteSpace(webpageUrl))
+  {
+    return webpageUrl;
+  }
+
+  var url = GetString(entry, "url");
+  if (!string.IsNullOrWhiteSpace(url) && IsYouTubeUrl(url))
+  {
+    return url;
+  }
+
+  var id = GetString(entry, "id") ?? url;
+  return string.IsNullOrWhiteSpace(id) ? null : $"https://www.youtube.com/watch?v={id}";
+}
+
+static string? GetString(JsonElement element, string name)
+{
+  return element.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String ? prop.GetString() : null;
+}
+
+static int? GetInt(JsonElement element, string name)
+{
+  return element.TryGetProperty(name, out var prop) && prop.TryGetInt32(out var value) ? value : null;
+}
+
+static string GetDuration(JsonElement element)
+{
+  if (!element.TryGetProperty("duration", out var prop))
+  {
+    return "";
+  }
+
+  double seconds;
+  if (prop.ValueKind == JsonValueKind.Number && prop.TryGetDouble(out var number))
+  {
+    seconds = number;
+  }
+  else if (prop.ValueKind == JsonValueKind.String && double.TryParse(prop.GetString(), out var parsed))
+  {
+    seconds = parsed;
+  }
+  else
+  {
+    return "";
+  }
+
+  var time = TimeSpan.FromSeconds(seconds);
+  return time.TotalHours >= 1 ? time.ToString(@"h\:mm\:ss") : time.ToString(@"m\:ss");
 }
 
 static object WithRequestId(string? requestId, object payload)
@@ -334,4 +489,14 @@ sealed class DownloadTask
   public int? ExitCode { get; set; }
   public DateTimeOffset StartedAt { get; set; }
   public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.Now;
+}
+
+sealed class ResolvedVideo
+{
+  public string Id { get; set; } = "";
+  public string Url { get; set; } = "";
+  public string Title { get; set; } = "";
+  public string Uploader { get; set; } = "";
+  public string Duration { get; set; } = "";
+  public int Index { get; set; }
 }
