@@ -9,7 +9,9 @@
   --accent-strong: #cc0000;
   --success: #067647;
   --danger: #c00;
-  --shadow: 0 2px 14px rgba(15, 15, 15, 0.08);
+  --warn: #b06000;
+  --shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 4px 14px rgba(15, 15, 15, 0.05);
+  --shadow-hover: 0 2px 8px rgba(15, 15, 15, 0.10);
 }
 
 * {
@@ -26,7 +28,7 @@ body {
 
 main {
   min-height: 100vh;
-  padding: 18px;
+  padding: 16px 18px 18px;
   background: #fff;
 }
 
@@ -34,7 +36,7 @@ header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .mark {
@@ -91,7 +93,7 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding: 4px;
   border-radius: 8px;
   background: var(--soft);
@@ -107,11 +109,16 @@ button {
   color: white;
   font-weight: 800;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 button:hover {
   background: var(--accent-strong);
+  box-shadow: var(--shadow-hover);
 }
 
 button:active {
@@ -119,8 +126,35 @@ button:active {
 }
 
 button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
+}
+
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #065fd4;
+  outline-offset: 2px;
+}
+
+#resolve::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-bottom: 6px solid transparent;
+  border-left: 9px solid currentColor;
+  border-top: 6px solid transparent;
+}
+
+#downloadSelected::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(-45deg) translateY(-2px);
 }
 
 .tab {
@@ -130,6 +164,7 @@ button:disabled {
   background: transparent;
   color: var(--ink);
   box-shadow: none;
+  font-size: 13px;
 }
 
 .tab:hover {
@@ -221,8 +256,14 @@ select {
   transition: border 120ms ease, box-shadow 120ms ease;
 }
 
+textarea:hover,
+input:hover,
+select:hover {
+  border-color: #c7c7c7;
+}
+
 textarea {
-  min-height: 88px;
+  min-height: 72px;
   resize: vertical;
   padding: 12px;
 }
@@ -243,28 +284,67 @@ select:focus {
 textarea + label,
 input + label,
 select + label {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 #status {
-  min-height: 38px;
+  min-height: 0;
   margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   overflow-wrap: anywhere;
 }
 
+#status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #909090;
+  flex: 0 0 auto;
+}
+
+#status[data-state="busy"] {
+  border-color: #f6d58b;
+  background: #fff8e1;
+  color: var(--warn);
+}
+
+#status[data-state="busy"]::before {
+  background: var(--warn);
+}
+
 #status[data-state="error"] {
+  border-color: #f4b6b6;
+  background: #fff0f0;
   color: var(--danger);
 }
 
+#status[data-state="error"]::before {
+  background: var(--danger);
+}
+
 #status[data-state="success"] {
+  border-color: #b7e4cc;
+  background: #edf8f2;
   color: var(--success);
+}
+
+#status[data-state="success"]::before {
+  background: var(--success);
 }
 
 .selection,
 .tasks,
 .accountPanel,
 .accountList {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .sectionHead,
@@ -298,7 +378,7 @@ select + label {
 .tasksList,
 .compactList {
   display: grid;
-  gap: 10px;
+  gap: 9px;
   margin-top: 10px;
 }
 
@@ -306,14 +386,14 @@ select + label {
   padding: 14px;
   color: var(--muted);
   border-style: dashed;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fafafa;
 }
 
 .task,
 .videoItem,
 .accountCard,
 .compactItem {
-  padding: 13px;
+  padding: 12px;
 }
 
 .videoItem {
@@ -321,6 +401,15 @@ select + label {
   gap: 10px;
   margin: 0;
   color: var(--ink);
+  transition: border 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.videoItem:hover,
+.task:hover,
+.compactItem:hover {
+  border-color: #d0d0d0;
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 
 .videoItem input {
@@ -341,6 +430,12 @@ select + label {
 .compactItem strong,
 .compactItem span {
   overflow-wrap: anywhere;
+}
+
+.videoBody strong,
+.compactItem strong,
+.taskTop strong {
+  line-height: 1.3;
 }
 
 .videoBody span,
@@ -372,7 +467,7 @@ select + label {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), #ff4e45);
 }
 
 .meta,
@@ -392,6 +487,7 @@ select + label {
   justify-content: flex-start;
   gap: 10px;
   margin-top: 10px;
+  box-shadow: none;
 }
 
 .accountCard img {
