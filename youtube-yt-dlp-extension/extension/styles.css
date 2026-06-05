@@ -30,7 +30,7 @@ body {
 
 main {
   min-height: 100vh;
-  padding: 0 16px 16px;
+  padding: 0 16px 10px;
   background: var(--canvas);
 }
 
@@ -39,7 +39,7 @@ main {
   align-items: center;
   gap: 12px;
   margin: 0 -16px 12px;
-  padding: 14px 18px 12px;
+  padding: 12px 18px 10px;
   border-bottom: 1px solid var(--line);
   background: #fff;
 }
@@ -104,7 +104,7 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   padding: 4px;
   border-radius: 999px;
   background: #efefef;
@@ -112,8 +112,8 @@ p {
 
 button {
   width: 100%;
-  height: 44px;
-  margin-top: 14px;
+  height: 42px;
+  margin-top: 10px;
   border: 0;
   border-radius: 999px;
   background: var(--accent);
@@ -165,6 +165,13 @@ select:focus-visible {
   border-bottom: 2px solid currentColor;
   border-left: 2px solid currentColor;
   transform: rotate(-45deg) translateY(-2px);
+}
+
+#downloadSelected {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  box-shadow: 0 -8px 18px rgba(249, 249, 249, 0.95);
 }
 
 .tab {
@@ -229,6 +236,48 @@ button.small {
   display: block;
 }
 
+.nowPlaying {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 9px 12px;
+  border: 1px solid #dedede;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.nowPlaying > div {
+  min-width: 0;
+}
+
+.nowPlaying strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.nowIcon {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #fff1f1;
+}
+
+.nowIcon::after {
+  content: "";
+  position: absolute;
+  left: 52%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid var(--accent);
+  border-top: 7px solid transparent;
+  transform: translate(-45%, -50%);
+}
+
 .panel,
 .accountPanel,
 .task,
@@ -242,7 +291,8 @@ button.small {
 }
 
 .panel {
-  padding: 14px;
+  padding: 0;
+  overflow: hidden;
   box-shadow: none;
 }
 
@@ -250,6 +300,19 @@ button.small {
 .tasksHead,
 .accountList .sectionHead {
   padding: 0 2px;
+}
+
+.fieldRow {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.fieldRow:last-child {
+  border-bottom: 0;
+}
+
+.fieldRow:focus-within {
+  background: #fff;
 }
 
 label {
@@ -279,14 +342,14 @@ select:hover {
 }
 
 textarea {
-  min-height: 72px;
+  min-height: 62px;
   resize: vertical;
   padding: 12px;
 }
 
 input,
 select {
-  height: 42px;
+  height: 40px;
   padding: 0 12px;
 }
 
@@ -306,8 +369,8 @@ select + label {
 
 #status {
   min-height: 0;
-  margin-top: 12px;
-  padding: 10px 12px;
+  margin-top: 10px;
+  padding: 9px 12px;
   border: 1px solid #d8d8d8;
   border-radius: 10px;
   background: var(--soft);
@@ -361,7 +424,7 @@ select + label {
 .tasks,
 .accountPanel,
 .accountList {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .sectionHead,
@@ -395,8 +458,8 @@ select + label {
 .tasksList,
 .compactList {
   display: grid;
-  gap: 9px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .empty {
@@ -410,7 +473,7 @@ select + label {
 .videoItem,
 .accountCard,
 .compactItem {
-  padding: 12px;
+  padding: 10px 12px;
 }
 
 .videoItem {

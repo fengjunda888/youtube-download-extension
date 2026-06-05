@@ -26,21 +26,35 @@
       </nav>
 
       <section id="resolveView" class="view active">
+        <section class="nowPlaying" aria-label="当前页面">
+          <span class="nowIcon" aria-hidden="true"></span>
+          <div>
+            <strong>当前 YouTube 页面</strong>
+            <p>解析当前视频、合集或粘贴的链接</p>
+          </div>
+        </section>
+
         <section class="panel">
-          <label for="url">YouTube 链接</label>
-          <textarea id="url" rows="3" spellcheck="false"></textarea>
+          <div class="fieldRow">
+            <label for="url">YouTube 链接</label>
+            <input id="url" type="text" spellcheck="false">
+          </div>
 
-          <label for="downloadDir">下载路径</label>
-          <input id="downloadDir" type="text" spellcheck="false">
+          <div class="fieldRow">
+            <label for="downloadDir">下载路径</label>
+            <input id="downloadDir" type="text" spellcheck="false">
+          </div>
 
-          <label for="quality">画质</label>
-          <select id="quality">
-            <option value="best-mp4">最佳单文件 MP4</option>
-            <option value="1080">最高 1080p</option>
-            <option value="720">最高 720p</option>
-            <option value="480">最高 480p</option>
-            <option value="audio">仅音频 MP3</option>
-          </select>
+          <div class="fieldRow">
+            <label for="quality">画质</label>
+            <select id="quality">
+              <option value="best-mp4">最佳单文件 MP4</option>
+              <option value="1080">最高 1080p</option>
+              <option value="720">最高 720p</option>
+              <option value="480">最高 480p</option>
+              <option value="audio">仅音频 MP3</option>
+            </select>
+          </div>
         </section>
 
         <button id="resolve" type="button">解析当前链接</button>
