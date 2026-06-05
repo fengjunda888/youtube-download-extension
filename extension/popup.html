@@ -65,11 +65,12 @@
             <div>
               <h2>解析结果</h2>
               <p id="resolveSummary">还没有解析视频。</p>
+              <div id="resolveChips" class="summaryChips"></div>
             </div>
             <label class="selectAll"><input id="selectAll" type="checkbox"> 全选</label>
           </div>
-          <div id="videoList" class="videoList"></div>
           <button id="downloadSelected" type="button" disabled>下载选中视频</button>
+          <div id="videoList" class="videoList"></div>
         </section>
       </section>
 
@@ -79,6 +80,7 @@
             <h2>下载任务</h2>
             <button id="refresh" type="button" class="ghost">刷新</button>
           </div>
+          <div id="taskSummary" class="summaryChips taskSummary"></div>
           <div id="tasksList" class="tasksList"></div>
         </section>
       </section>
