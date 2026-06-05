@@ -8,14 +8,14 @@
   </head>
   <body>
     <main>
-      <header>
+      <header class="appHeader">
         <img class="mark" src="icons/icon-48.png" alt="" aria-hidden="true">
         <div class="titleBlock">
           <div class="titleRow">
-            <h1>yt-dlp 下载</h1>
+            <h1>YouTube 下载助手</h1>
             <span id="version" class="version">v0.2.0</span>
           </div>
-          <p>by fengjunda888 · 解析、选择、下载一页完成</p>
+          <p>yt-dlp powered · by fengjunda888</p>
         </div>
       </header>
 
@@ -27,7 +27,7 @@
 
       <section id="resolveView" class="view active">
         <section class="panel">
-          <label for="url">视频或合集链接</label>
+          <label for="url">YouTube 链接</label>
           <textarea id="url" rows="3" spellcheck="false"></textarea>
 
           <label for="downloadDir">下载路径</label>
@@ -43,7 +43,7 @@
           </select>
         </section>
 
-        <button id="resolve" type="button">解析链接</button>
+        <button id="resolve" type="button">解析当前链接</button>
         <p id="status" role="status">正在读取当前标签页...</p>
 
         <section class="selection">

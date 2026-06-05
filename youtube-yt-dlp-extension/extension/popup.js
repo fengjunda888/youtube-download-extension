@@ -32,16 +32,16 @@ const previewVideos = [
   {
     id: "dQw4w9WgXcQ",
     url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    title: "Sample video ready to download",
-    uploader: "Demo Channel",
+    title: "示例视频：准备下载",
+    uploader: "示例频道",
     duration: "3:33",
     index: 1
   },
   {
     id: "KpcaZCkYFv4",
     url: "https://www.youtube.com/watch?v=KpcaZCkYFv4",
-    title: "Playlist item with 1080p option",
-    uploader: "Demo Channel",
+    title: "合集视频：可选 1080p 画质",
+    uploader: "示例频道",
     duration: "8:14",
     index: 2
   }
@@ -81,7 +81,7 @@ const previewAccount = {
   })),
   likedVideos: previewVideos,
   playlists: [
-    { id: "PLdemo", title: "Saved tutorials", count: 18, thumbnail: "icons/icon-48.png" }
+    { id: "PLdemo", title: "收藏的教程合集", count: 18, thumbnail: "icons/icon-48.png" }
   ]
 };
 
@@ -300,6 +300,7 @@ function renderVideos(videos) {
   videoList.innerHTML = videos.map((video, index) => `
     <label class="videoItem">
       <input type="checkbox" data-video-index="${index}" checked>
+      <span class="videoThumb" aria-hidden="true"></span>
       <span class="videoBody">
         <strong>${escapeHtml(video.index ? `${video.index}. ${video.title}` : video.title)}</strong>
         <span>${escapeHtml([video.uploader, video.duration].filter(Boolean).join(" · ") || video.url)}</span>
@@ -332,7 +333,7 @@ function renderTasks(tasks) {
     return `
       <article class="task">
         <div class="taskTop">
-          <strong>${escapeHtml(statusTextFor(status))}</strong>
+          <strong><span class="statusPill ${escapeHtml(status)}">${escapeHtml(statusTextFor(status))}</span></strong>
           <span>${percent.toFixed(percent ? 1 : 0)}%</span>
         </div>
         <div class="bar"><span style="width:${percent}%"></span></div>
@@ -393,6 +394,7 @@ function renderLinkList(container, items, mapItem) {
     const mapped = mapItem(item);
     return `
       <article class="compactItem">
+        <span class="miniThumb" aria-hidden="true"></span>
         <div>
           <strong>${escapeHtml(mapped.title || mapped.url)}</strong>
           <span>${escapeHtml(mapped.subtitle || "")}</span>
