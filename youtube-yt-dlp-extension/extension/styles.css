@@ -584,10 +584,59 @@ select + label {
 }
 
 .empty {
-  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
   color: var(--muted);
   border-style: dashed;
   background: #fff;
+}
+
+.empty > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.empty strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.empty span {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.emptyIcon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #fff1f1;
+}
+
+.emptyIcon::after {
+  content: "";
+  position: absolute;
+  left: 52%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid var(--accent);
+  border-top: 6px solid transparent;
+  transform: translate(-42%, -50%);
+}
+
+.empty.error .emptyIcon {
+  background: #fff0f0;
+}
+
+.empty.error .emptyIcon::after {
+  border-left-color: var(--danger);
 }
 
 .task,

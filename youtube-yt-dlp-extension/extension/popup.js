@@ -232,7 +232,7 @@ async function refreshTasks() {
     const response = await sendNative({ action: "list" });
     renderTasks(response.tasks || []);
   } catch (error) {
-    tasksList.innerHTML = `<div class="empty">无法读取任务：${escapeHtml(error.message)}</div>`;
+    tasksList.innerHTML = emptyState("无法读取任务", error.message, "error");
   }
 }
 
@@ -294,7 +294,7 @@ function renderVideos(videos) {
   if (!videos.length) {
     resolveSummary.textContent = "还没有解析视频。";
     resolveChips.innerHTML = "";
-    videoList.innerHTML = '<div class="empty">粘贴 YouTube 视频或合集链接，然后点击解析。</div>';
+    videoList.innerHTML = emptyState("等待解析", "粘贴 YouTube 视频或合集链接，然后点击解析。");
     updateSelectionState();
     return;
   }
@@ -325,7 +325,7 @@ function renderVideos(videos) {
 function renderTasks(tasks) {
   if (!tasks.length) {
     taskSummary.innerHTML = "";
-    tasksList.innerHTML = '<div class="empty">还没有下载任务。</div>';
+    tasksList.innerHTML = emptyState("暂无下载任务", "解析视频后，选中的下载会显示在这里。");
     return;
   }
 
@@ -381,7 +381,7 @@ function renderAccount(data) {
       </div>
     `;
   } else {
-    accountSummary.innerHTML = '<div class="empty">还没有登录 YouTube。</div>';
+    accountSummary.innerHTML = emptyState("未连接账号", "登录后可以读取播放列表、喜欢视频和最近浏览。");
   }
 
   renderLinkList(recentList, data.recentHistory || [], item => ({
@@ -403,7 +403,7 @@ function renderAccount(data) {
 
 function renderLinkList(container, items, mapItem) {
   if (!items.length) {
-    container.innerHTML = '<div class="empty">没有可显示的内容。</div>';
+    container.innerHTML = emptyState("暂无内容", "登录或刷新后，这里会显示可解析的 YouTube 项目。");
     return;
   }
 
@@ -438,6 +438,18 @@ function updateSelectionState() {
   selectAllInput.disabled = checkboxes.length === 0;
   selectAllInput.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
   selectAllInput.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+}
+
+function emptyState(title, description, tone = "") {
+  return `
+    <div class="empty ${escapeHtml(tone)}">
+      <span class="emptyIcon" aria-hidden="true"></span>
+      <div>
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(description)}</span>
+      </div>
+    </div>
+  `;
 }
 
 function getSelectedVideos() {
