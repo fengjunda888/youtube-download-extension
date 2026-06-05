@@ -174,7 +174,73 @@ select:focus-visible {
   background: transparent;
   color: var(--ink);
   box-shadow: none;
+  gap: 6px;
   font-size: 13px;
+}
+
+.tabIcon {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.resolveIcon::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 0;
+  height: 0;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
+  border-top: 5px solid transparent;
+}
+
+.tasksIcon::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 3px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.tasksIcon::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.accountIcon::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.accountIcon::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  bottom: 1px;
+  width: 11px;
+  height: 6px;
+  border-radius: 999px 999px 4px 4px;
+  background: currentColor;
 }
 
 .tab:hover {
