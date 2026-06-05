@@ -252,7 +252,7 @@ function startPolling() {
 
 async function loadAccountData() {
   if (!oauthConfigured && !previewMode) {
-    accountStatus.textContent = "读取失败：请先在 manifest.json 配置 Google OAuth Client ID。";
+    accountStatus.textContent = "账号功能暂未启用：发布者需要先在 manifest.json 配置 Google OAuth Client ID。下载功能不受影响。";
     renderAccount({});
     return;
   }
@@ -458,10 +458,10 @@ function escapeHtml(value) {
 document.addEventListener("DOMContentLoaded", async () => {
   previewMode = new URLSearchParams(window.location.search).get("preview") || "";
   const manifest = chrome?.runtime?.getManifest?.();
-  versionText.textContent = `v${manifest?.version || "0.1.0"}`;
+  versionText.textContent = `v${manifest?.version || "0.2.0"}`;
   oauthConfigured = !manifest?.oauth2?.client_id?.startsWith("REPLACE_WITH_");
   if (!oauthConfigured && !previewMode) {
-    accountStatus.textContent = "账号功能需要先配置 Google OAuth Client ID。";
+    accountStatus.textContent = "账号功能是可选项：配置 Google OAuth Client ID 后可读取 YouTube 收藏和播放列表。";
   }
 
   const savedDir = localStorage.getItem(downloadDirStorageKey);
