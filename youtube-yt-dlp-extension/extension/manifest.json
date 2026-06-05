@@ -6,7 +6,14 @@
   "author": "fengjunda888",
   "homepage_url": "https://github.com/fengjunda888/youtube-download-extension",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3MUG2bVmVFLnbIZ8KtjKMDOtUXBb1fn7yw7VEFpnQJYuslQa58scMMtPccWU3rmZvQyWw8eaCCdpFIrAzrAii7X4Ox/G4gUJVf3/99OziqL10hMZn3eNReut6ZBQHvPAwl8LipRbwKr3B7s2DucP/1mRqG2wKjbfr7ZrA2Rc/QpioojpOGarTlPb3KYrBxv8cFGxCkThg8Pa25cixvJ84elWlysjaPSN8h6h4F7JDvGGTYA8Q0K/sKOplokQdpFYLev9eVpmu+TbGEE9vqpRg1c18M6Wtpn9fZ13j+JJtbAl/Hu4kWWh3BglYmYPQBwUXPjOpk+LLOQ0ZzrH3JayewIDAQAB",
-  "permissions": ["activeTab", "tabs", "nativeMessaging"],
+  "permissions": ["activeTab", "tabs", "nativeMessaging", "identity", "history", "storage"],
+  "host_permissions": ["https://www.googleapis.com/*"],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/youtube.readonly"
+    ]
+  },
   "background": {
     "service_worker": "background.js"
   },

@@ -13,9 +13,18 @@ const videoList = document.getElementById("videoList");
 const resolveSummary = document.getElementById("resolveSummary");
 const selectAllInput = document.getElementById("selectAll");
 const versionText = document.getElementById("version");
+const loginAccountButton = document.getElementById("loginAccount");
+const logoutAccountButton = document.getElementById("logoutAccount");
+const loadAccountButton = document.getElementById("loadAccount");
+const accountStatus = document.getElementById("accountStatus");
+const accountSummary = document.getElementById("accountSummary");
+const recentList = document.getElementById("recentList");
+const likedList = document.getElementById("likedList");
+const playlistList = document.getElementById("playlistList");
 const views = {
   resolve: document.getElementById("resolveView"),
-  tasks: document.getElementById("tasksView")
+  tasks: document.getElementById("tasksView"),
+  account: document.getElementById("accountView")
 };
 const tabs = [...document.querySelectorAll(".tab")];
 
@@ -59,6 +68,22 @@ const previewTasks = [
     lastLine: "[ExtractAudio] Destination: sample-track.mp3"
   }
 ];
+const previewAccount = {
+  channel: {
+    title: "fengjunda888",
+    thumbnail: "icons/icon-48.png"
+  },
+  recentHistory: previewVideos.map(video => ({
+    url: video.url,
+    title: video.title,
+    lastVisitTime: Date.now(),
+    visitCount: 3
+  })),
+  likedVideos: previewVideos,
+  playlists: [
+    { id: "PLdemo", title: "Saved tutorials", count: 18, thumbnail: "icons/icon-48.png" }
+  ]
+};
 
 let pollTimer;
 let resolvedVideos = [];
@@ -91,6 +116,21 @@ async function sendNative(payload) {
   }
   if (result.response?.ok === false) {
     throw new Error(result.response.error || "Native host rejected the request.");
+  }
+  return result.response;
+}
+
+async function sendAccount(payload) {
+  const result = await chrome.runtime.sendMessage({
+    type: "account-request",
+    payload
+  });
+
+  if (!result?.ok) {
+    throw new Error(result?.error || "Account request failed.");
+  }
+  if (result.response?.ok === false) {
+    throw new Error(result.response.error || "Account request was rejected.");
   }
   return result.response;
 }
@@ -204,6 +244,36 @@ function startPolling() {
   pollTimer = setInterval(refreshTasks, 1500);
 }
 
+async function loadAccountData() {
+  loginAccountButton.disabled = true;
+  loadAccountButton.disabled = true;
+  accountStatus.textContent = "正在读取 YouTube 账号数据...";
+
+  try {
+    const data = previewMode ? previewAccount : await sendAccount({ action: "load" });
+    renderAccount(data);
+    accountStatus.textContent = "账号数据已读取。";
+  } catch (error) {
+    accountStatus.textContent = `读取失败：${error.message}`;
+    renderAccount({});
+  } finally {
+    loginAccountButton.disabled = false;
+    loadAccountButton.disabled = false;
+  }
+}
+
+async function logoutAccount() {
+  try {
+    if (!previewMode) {
+      await sendAccount({ action: "logout" });
+    }
+    accountStatus.textContent = "已退出授权。";
+    renderAccount({});
+  } catch (error) {
+    accountStatus.textContent = `退出失败：${error.message}`;
+  }
+}
+
 function renderVideos(videos) {
   selectAllInput.checked = false;
   selectAllInput.indeterminate = false;
@@ -268,6 +338,67 @@ function renderTasks(tasks) {
   });
 }
 
+function renderAccount(data) {
+  const channel = data.channel;
+  if (channel?.title) {
+    accountSummary.innerHTML = `
+      <div class="accountCard">
+        ${channel.thumbnail ? `<img src="${escapeHtml(channel.thumbnail)}" alt="">` : ""}
+        <div>
+          <strong>${escapeHtml(channel.title)}</strong>
+          <span>已连接 YouTube 账号</span>
+        </div>
+      </div>
+    `;
+  } else {
+    accountSummary.innerHTML = '<div class="empty">还没有登录 YouTube。</div>';
+  }
+
+  renderLinkList(recentList, data.recentHistory || [], item => ({
+    title: item.title,
+    subtitle: item.lastVisitTime ? `最近访问：${new Date(item.lastVisitTime).toLocaleString()}` : item.url,
+    url: item.url
+  }));
+  renderLinkList(likedList, data.likedVideos || [], item => ({
+    title: item.title,
+    subtitle: item.channelTitle || item.uploader || item.url,
+    url: item.url
+  }));
+  renderLinkList(playlistList, data.playlists || [], item => ({
+    title: item.title,
+    subtitle: `${item.count || 0} 个视频`,
+    url: `https://www.youtube.com/playlist?list=${item.id}`
+  }));
+}
+
+function renderLinkList(container, items, mapItem) {
+  if (!items.length) {
+    container.innerHTML = '<div class="empty">没有可显示的内容。</div>';
+    return;
+  }
+
+  container.innerHTML = items.map(item => {
+    const mapped = mapItem(item);
+    return `
+      <article class="compactItem">
+        <div>
+          <strong>${escapeHtml(mapped.title || mapped.url)}</strong>
+          <span>${escapeHtml(mapped.subtitle || "")}</span>
+        </div>
+        <button class="ghost small" data-use-url="${escapeHtml(mapped.url)}">解析</button>
+      </article>
+    `;
+  }).join("");
+
+  container.querySelectorAll("[data-use-url]").forEach(button => {
+    button.addEventListener("click", () => {
+      urlInput.value = button.dataset.useUrl;
+      setView("resolve");
+      setStatus("已填入链接，可以开始解析。", "success");
+    });
+  });
+}
+
 function updateSelectionState() {
   const checkboxes = [...videoList.querySelectorAll("input[type='checkbox']")];
   const selectedCount = checkboxes.filter(input => input.checked).length;
@@ -324,8 +455,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     resolvedVideos = previewVideos;
     renderVideos(previewMode === "tasks" ? [] : previewVideos);
     renderTasks(previewMode === "tasks" ? previewTasks : []);
+    renderAccount(previewMode === "account" ? previewAccount : {});
     setStatus("准备好了。", "success");
-    setView(previewMode === "tasks" ? "tasks" : "resolve");
+    setView(["tasks", "account"].includes(previewMode) ? previewMode : "resolve");
     return;
   }
 
@@ -346,3 +478,6 @@ selectAllInput.addEventListener("change", () => {
 resolveButton.addEventListener("click", resolveCurrentUrl);
 downloadSelectedButton.addEventListener("click", downloadSelectedVideos);
 refreshButton.addEventListener("click", refreshTasks);
+loginAccountButton.addEventListener("click", loadAccountData);
+loadAccountButton.addEventListener("click", loadAccountData);
+logoutAccountButton.addEventListener("click", logoutAccount);

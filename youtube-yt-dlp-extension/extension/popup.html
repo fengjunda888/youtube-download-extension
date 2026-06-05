@@ -22,6 +22,7 @@
       <nav class="tabs" aria-label="页面">
         <button id="resolveTab" class="tab active" type="button" data-view="resolve">解析选择</button>
         <button id="tasksTab" class="tab" type="button" data-view="tasks">下载任务</button>
+        <button id="accountTab" class="tab" type="button" data-view="account">账号</button>
       </nav>
 
       <section id="resolveView" class="view active">
@@ -65,6 +66,38 @@
             <button id="refresh" type="button" class="ghost">刷新</button>
           </div>
           <div id="tasksList" class="tasksList"></div>
+        </section>
+      </section>
+
+      <section id="accountView" class="view">
+        <section class="accountPanel">
+          <div class="sectionHead">
+            <div>
+              <h2>YouTube 账号</h2>
+              <p id="accountStatus">登录后读取播放列表、喜欢视频和本机最近浏览。</p>
+            </div>
+            <button id="logoutAccount" type="button" class="ghost">退出</button>
+          </div>
+          <button id="loginAccount" type="button">登录 YouTube</button>
+          <div id="accountSummary" class="accountSummary"></div>
+        </section>
+
+        <section class="accountList">
+          <div class="sectionHead">
+            <h2>最近浏览</h2>
+            <button id="loadAccount" type="button" class="ghost">刷新</button>
+          </div>
+          <div id="recentList" class="compactList"></div>
+        </section>
+
+        <section class="accountList">
+          <h2>喜欢的视频</h2>
+          <div id="likedList" class="compactList"></div>
+        </section>
+
+        <section class="accountList">
+          <h2>播放列表 / 收藏</h2>
+          <div id="playlistList" class="compactList"></div>
         </section>
       </section>
     </main>

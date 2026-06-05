@@ -70,7 +70,7 @@ p {
 
 .tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -212,6 +212,11 @@ button.small {
   margin-top: 14px;
 }
 
+.accountPanel,
+.accountList {
+  margin-top: 14px;
+}
+
 .sectionHead,
 .tasksHead {
   display: flex;
@@ -239,7 +244,8 @@ h2 {
 }
 
 .videoList,
-.tasksList {
+.tasksList,
+.compactList {
   display: grid;
   gap: 10px;
   margin-top: 10px;
@@ -291,6 +297,51 @@ h2 {
 .videoBody span {
   color: var(--muted);
   font-size: 12px;
+}
+
+.accountCard,
+.compactItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.accountCard {
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+
+.accountCard img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.accountCard div,
+.compactItem div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.accountCard span,
+.compactItem span {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.compactItem strong {
+  overflow-wrap: anywhere;
+}
+
+.compactItem button {
+  flex: 0 0 auto;
 }
 
 .taskTop {

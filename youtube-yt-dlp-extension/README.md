@@ -10,11 +10,14 @@ Keywords: YouTube download extension, YouTube video downloader, yt-dlp Chrome ex
 
 ![Ready state](docs/screenshots/popup-ready.png)
 ![Task list](docs/screenshots/popup-tasks.png)
+![Account tab](docs/screenshots/popup-account.png)
 
 ## Features
 
 - Resolve a YouTube video or playlist before downloading.
 - Select one video, multiple videos, or all parsed videos.
+- Sign in with Google OAuth to read YouTube account data.
+- Show YouTube playlists, liked videos, and recent YouTube watch pages from Chrome history.
 - Track multiple concurrent download tasks in the popup.
 - Show task status, progress, speed, ETA, and recent `yt-dlp` output.
 - Choose quality presets: best single-file MP4, up to 1080p, 720p, 480p, or MP3 audio.
@@ -54,13 +57,43 @@ brew install yt-dlp
 4. Click `Load unpacked`.
 5. Select the `extension` folder in this repository.
 6. Install the native host for your operating system.
-7. Restart Chrome, then reload the extension from `chrome://extensions/`.
+7. Optional: configure Google OAuth if you want account features.
+8. Restart Chrome, then reload the extension from `chrome://extensions/`.
 
 The extension uses a fixed development extension ID:
 
 ```text
 lgdfehfacdnpknkphkfmmollklciaaal
 ```
+
+## Optional YouTube account setup
+
+Account features use official Google OAuth and the YouTube Data API. The extension does not read or reuse YouTube cookies.
+
+1. Create a Google Cloud project.
+2. Enable `YouTube Data API v3`.
+3. Create an OAuth client for a Chrome extension.
+4. Use this extension ID when creating the OAuth client:
+
+```text
+lgdfehfacdnpknkphkfmmollklciaaal
+```
+
+5. Copy the OAuth client ID.
+6. Replace the placeholder in `extension/manifest.json`:
+
+```json
+"client_id": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com"
+```
+
+The account tab can show:
+
+- Your YouTube channel profile.
+- Your playlists / saved playlist list returned by YouTube Data API.
+- Your liked videos returned by YouTube Data API.
+- Recent YouTube watch pages from the local Chrome browsing history.
+
+YouTube Data API does not provide a general watch-history export endpoint for all accounts. This project uses Chrome history for recent browsing instead.
 
 ## Windows native host install
 
@@ -116,6 +149,8 @@ If `yt-dlp` is not on `PATH`, set `YTDLP_PATH` before launching Chrome or add `y
 6. Select one or more parsed videos.
 7. Click `Download selected videos` / `下载选中视频`.
 8. Open the `Tasks` / `下载任务` tab to watch progress.
+
+Use the `Account` / `账号` tab to sign in, view playlists, liked videos, and recent YouTube watch pages, then send any item back to the resolve flow.
 
 The default download directory is:
 
