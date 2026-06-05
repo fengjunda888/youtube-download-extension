@@ -38,11 +38,13 @@
           <div class="fieldRow">
             <label for="url">YouTube 链接</label>
             <input id="url" type="text" spellcheck="false">
+            <p class="fieldHint">会自动读取当前标签页，也可以手动粘贴视频或合集链接。</p>
           </div>
 
           <div class="fieldRow">
             <label for="downloadDir">下载路径</label>
             <input id="downloadDir" type="text" spellcheck="false">
+            <p class="fieldHint">本地保存位置由浏览器扩展传给 native host。</p>
           </div>
 
           <div class="fieldRow">
@@ -54,6 +56,7 @@
               <option value="480">最高 480p</option>
               <option value="audio">仅音频 MP3</option>
             </select>
+            <p class="fieldHint">优先使用兼容性更好的 MP4；音频模式会转为 MP3。</p>
           </div>
         </section>
 
@@ -95,6 +98,10 @@
             <button id="logoutAccount" type="button" class="ghost">退出</button>
           </div>
           <button id="loginAccount" type="button" class="secondary">登录 YouTube</button>
+          <div class="noticeBar">
+            <span class="noticeIcon" aria-hidden="true"></span>
+            <p>账号授权是可选功能；解析和下载不需要登录。</p>
+          </div>
           <div id="accountSummary" class="accountSummary"></div>
         </section>
 

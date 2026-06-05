@@ -90,6 +90,13 @@ p {
   color: var(--muted);
 }
 
+.fieldHint {
+  margin-top: 5px;
+  color: #7a7a7a;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .version {
   flex: 0 0 auto;
   padding: 2px 7px;
@@ -362,7 +369,7 @@ button.small {
 }
 
 .fieldRow {
-  padding: 11px 14px;
+  padding: 9px 14px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -372,6 +379,42 @@ button.small {
 
 .fieldRow:focus-within {
   background: #fff;
+}
+
+.noticeBar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.noticeBar p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.noticeIcon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #e8f0fe;
+}
+
+.noticeIcon::before {
+  content: "i";
+  position: absolute;
+  inset: 0;
+  color: #065fd4;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
 }
 
 label {
