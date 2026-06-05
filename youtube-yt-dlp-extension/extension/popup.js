@@ -88,6 +88,7 @@ const previewAccount = {
 let pollTimer;
 let resolvedVideos = [];
 let previewMode = "";
+let oauthConfigured = true;
 
 function setStatus(message, state = "") {
   statusText.textContent = message;
@@ -121,13 +122,18 @@ async function sendNative(payload) {
 }
 
 async function sendAccount(payload) {
-  const result = await chrome.runtime.sendMessage({
-    type: "account-request",
-    payload
-  });
+  let result;
+  try {
+    result = await chrome.runtime.sendMessage({
+      type: "account-request",
+      payload
+    });
+  } catch (error) {
+    throw new Error(error.message || "Background service worker did not respond.");
+  }
 
   if (!result?.ok) {
-    throw new Error(result?.error || "Account request failed.");
+    throw new Error(result?.error || chrome.runtime.lastError?.message || "Account request failed.");
   }
   if (result.response?.ok === false) {
     throw new Error(result.response.error || "Account request was rejected.");
@@ -245,6 +251,12 @@ function startPolling() {
 }
 
 async function loadAccountData() {
+  if (!oauthConfigured && !previewMode) {
+    accountStatus.textContent = "读取失败：请先在 manifest.json 配置 Google OAuth Client ID。";
+    renderAccount({});
+    return;
+  }
+
   loginAccountButton.disabled = true;
   loadAccountButton.disabled = true;
   accountStatus.textContent = "正在读取 YouTube 账号数据...";
@@ -445,7 +457,12 @@ function escapeHtml(value) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   previewMode = new URLSearchParams(window.location.search).get("preview") || "";
-  versionText.textContent = `v${chrome?.runtime?.getManifest?.().version || "0.1.0"}`;
+  const manifest = chrome?.runtime?.getManifest?.();
+  versionText.textContent = `v${manifest?.version || "0.1.0"}`;
+  oauthConfigured = !manifest?.oauth2?.client_id?.startsWith("REPLACE_WITH_");
+  if (!oauthConfigured && !previewMode) {
+    accountStatus.textContent = "账号功能需要先配置 Google OAuth Client ID。";
+  }
 
   const savedDir = localStorage.getItem(downloadDirStorageKey);
   downloadDirInput.value = savedDir || defaultDownloadDir;

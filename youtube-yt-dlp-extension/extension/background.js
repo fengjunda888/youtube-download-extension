@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "account-request") {
     handleAccountRequest(message.payload)
       .then(response => sendResponse({ ok: true, response }))
-      .catch(error => sendResponse({ ok: false, error: error.message }));
+      .catch(error => sendResponse({ ok: false, error: error.message || String(error) }));
     return true;
   }
 
