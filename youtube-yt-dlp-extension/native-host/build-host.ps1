@@ -4,6 +4,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-dotnet publish (Join-Path $PSScriptRoot "native-host.csproj") -c Release -r win-x64 --self-contained false -o $PublishDir
+dotnet publish (Join-Path $PSScriptRoot "native-host.csproj") -c Release -o $PublishDir
 
 Write-Host "Published host to $PublishDir"

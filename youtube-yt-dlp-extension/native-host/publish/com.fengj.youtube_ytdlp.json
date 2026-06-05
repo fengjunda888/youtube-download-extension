@@ -1,9 +1,0 @@
-﻿{
-    "path":  "C:\\Users\\fengj\\Desktop\\冯俊达\\日语\\youtube-yt-dlp-extension\\native-host\\publish\\YouTubeYtDlpHost.exe",
-    "description":  "Native host for downloading YouTube videos with yt-dlp",
-    "name":  "com.fengj.youtube_ytdlp",
-    "allowed_origins":  [
-                            "chrome-extension://lgdfehfacdnpknkphkfmmollklciaaal/"
-                        ],
-    "type":  "stdio"
-}
