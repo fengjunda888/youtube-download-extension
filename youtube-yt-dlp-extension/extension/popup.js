@@ -9,8 +9,10 @@ const resolveButton = document.getElementById("resolve");
 const downloadSelectedButton = document.getElementById("downloadSelected");
 const refreshButton = document.getElementById("refresh");
 const tasksList = document.getElementById("tasksList");
+const taskSummary = document.getElementById("taskSummary");
 const videoList = document.getElementById("videoList");
 const resolveSummary = document.getElementById("resolveSummary");
+const resolveChips = document.getElementById("resolveChips");
 const selectAllInput = document.getElementById("selectAll");
 const versionText = document.getElementById("version");
 const loginAccountButton = document.getElementById("loginAccount");
@@ -291,12 +293,18 @@ function renderVideos(videos) {
   selectAllInput.indeterminate = false;
   if (!videos.length) {
     resolveSummary.textContent = "还没有解析视频。";
+    resolveChips.innerHTML = "";
     videoList.innerHTML = '<div class="empty">粘贴 YouTube 视频或合集链接，然后点击解析。</div>';
     updateSelectionState();
     return;
   }
 
   resolveSummary.textContent = `共 ${videos.length} 个视频，可选择一个或多个下载。`;
+  resolveChips.innerHTML = `
+    <span>${videos.length} 个视频</span>
+    <span>${escapeHtml(qualityText(qualityInput.value))}</span>
+    <span>路径已设置</span>
+  `;
   videoList.innerHTML = videos.map((video, index) => `
     <label class="videoItem">
       <input type="checkbox" data-video-index="${index}" checked>
@@ -316,9 +324,18 @@ function renderVideos(videos) {
 
 function renderTasks(tasks) {
   if (!tasks.length) {
+    taskSummary.innerHTML = "";
     tasksList.innerHTML = '<div class="empty">还没有下载任务。</div>';
     return;
   }
+
+  const runningCount = tasks.filter(task => ["running", "starting"].includes(task.Status || task.status)).length;
+  const doneCount = tasks.filter(task => (task.Status || task.status) === "done").length;
+  taskSummary.innerHTML = `
+    <span>${tasks.length} 个任务</span>
+    <span>${runningCount} 个进行中</span>
+    <span>${doneCount} 个已完成</span>
+  `;
 
   tasksList.innerHTML = tasks.map(task => {
     const percent = Math.max(0, Math.min(100, Number(task.Percent || task.percent || 0)));

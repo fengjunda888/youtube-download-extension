@@ -167,13 +167,6 @@ select:focus-visible {
   transform: rotate(-45deg) translateY(-2px);
 }
 
-#downloadSelected {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  box-shadow: 0 -8px 18px rgba(249, 249, 249, 0.95);
-}
-
 .tab {
   height: 34px;
   margin: 0;
@@ -437,6 +430,25 @@ select + label {
 
 .sectionHead > div {
   min-width: 0;
+}
+
+.summaryChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.summaryChips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .selectAll {
