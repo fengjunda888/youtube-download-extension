@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Added Windows and macOS native host install flows.
+- Changed native host target to cross-platform `.NET 8`.
+- Added URL resolve flow before downloading.
+- Added multi-select and select-all downloads.
+- Added `fengjunda888` author branding in the extension and documentation.
+- Removed generated native host publish binaries from source control.
+
 ## 0.1.0
 
 - Initial public release.
