@@ -45,8 +45,8 @@ main {
 }
 
 .mark {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   flex: 0 0 auto;
   filter: none;
 }
@@ -70,7 +70,7 @@ p {
 }
 
 h1 {
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.1;
   font-weight: 800;
   letter-spacing: 0;
@@ -103,7 +103,7 @@ p {
   border-radius: 999px;
   background: var(--soft);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -218,6 +218,7 @@ select:focus-visible {
   font-size: 13px;
   position: relative;
   overflow: hidden;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .tabIcon {
@@ -413,6 +414,14 @@ button.small {
   box-shadow: none;
 }
 
+.accountPanel {
+  padding: 12px 14px 14px;
+}
+
+.accountPanel .secondary {
+  margin-top: 12px;
+}
+
 .panelBlock {
   padding: 12px 14px 6px;
   background:
@@ -511,6 +520,15 @@ button.small {
   border-color: #ffb6b6;
 }
 
+.qualityChip.active::before {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(-45deg) translateY(-1px);
+}
+
 .selection .sectionHead,
 .tasksHead,
 .accountList .sectionHead {
@@ -536,6 +554,7 @@ button.small {
   gap: 9px;
   margin-top: 10px;
   padding: 10px 12px;
+  border: 1px solid #eeeeee;
   border-radius: 12px;
   background: var(--soft);
 }
@@ -863,17 +882,19 @@ select + label {
 .emptyAction {
   justify-self: start;
   min-width: 0;
-  height: 30px;
-  margin-top: 5px;
-  padding: 0 12px;
-  border: 1px solid #eeeeee;
-  background: #fff;
-  color: var(--ink);
+  height: 32px;
+  margin-top: 7px;
+  padding: 0 14px;
+  border: 1px solid #ffd0d0;
+  background: #fff6f6;
+  color: var(--accent-strong);
+  font-weight: 800;
 }
 
 .emptyAction:hover {
-  border-color: #dcdcdc;
-  background: var(--hover);
+  border-color: #ffb7b7;
+  background: #fff0f0;
+  color: var(--accent-strong);
 }
 
 .emptyIcon {
@@ -906,6 +927,61 @@ select + label {
   border-left-color: var(--danger);
 }
 
+.loadingState {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff, #fffdfd);
+  color: var(--muted);
+}
+
+.loadingState > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.loadingState strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.loadingState span {
+  font-size: 12px;
+}
+
+.loadingIcon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 3px solid #ffe0e0;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+.loadingBar {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1f1f1;
+}
+
+.loadingBar span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #ff5b52);
+  animation: loadingSweep 1.1s ease-in-out infinite;
+}
+
 .task,
 .videoItem,
 .accountCard,
@@ -924,7 +1000,17 @@ select + label {
   gap: 10px;
   margin: 0;
   color: var(--ink);
+  position: relative;
+  overflow: hidden;
   transition: background 120ms ease, border 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.videoItem::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: transparent;
 }
 
 .videoItem:hover,
@@ -1068,8 +1154,16 @@ select + label {
 
 .videoItem.checked {
   border-color: #ffcdcd;
-  background: #fffafa;
+  background: linear-gradient(180deg, #fffafa, #fff);
   box-shadow: 0 3px 12px rgba(255, 0, 0, 0.08);
+}
+
+.videoItem.checked::before {
+  background: var(--accent);
+}
+
+.videoItem.checked .videoThumb {
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.12);
 }
 
 .videoBody span,
@@ -1177,11 +1271,6 @@ select + label {
 
 .taskActions .ghost.small {
   min-width: 56px;
-}
-
-.task-done .taskActions .ghost.small,
-.task-canceled .taskActions .ghost.small {
-  opacity: 0.72;
 }
 
 .accountCard {
@@ -1294,10 +1383,31 @@ select + label {
   }
 }
 
+@keyframes loadingSweep {
+  0% { transform: translateX(-105%); }
+  100% { transform: translateX(240%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
   button.isBusy::before,
+  .loadingIcon,
+  .loadingBar span,
   .task-running .bar span,
   .task-starting .bar span {
     animation: none;
+  }
+
+  button:active,
+  .videoItem:hover,
+  .task:hover,
+  .compactItem:hover {
+    transform: none;
   }
 }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>YouTube Downloader</title>
+    <title>YouTube 下载助手 · yt-dlp</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -30,7 +30,7 @@
           <span class="nowIcon" aria-hidden="true"></span>
           <div>
             <strong>当前 YouTube 页面</strong>
-            <p>解析当前视频、合集或粘贴的链接</p>
+            <p>可解析当前视频、合集或粘贴链接</p>
           </div>
         </section>
 
@@ -40,7 +40,7 @@
               <span class="stepBadge">1</span>
               <div>
                 <strong>链接来源</strong>
-                <p>先确认当前页面或手动粘贴链接。</p>
+                <p>使用当前标签页，或粘贴视频 / 合集链接。</p>
               </div>
             </div>
             <div class="sourceActions">
@@ -52,7 +52,7 @@
           <div class="fieldRow">
             <label for="url">YouTube 链接</label>
             <input id="url" type="text" spellcheck="false">
-            <p class="fieldHint">会自动读取当前标签页，也可以手动粘贴视频或合集链接。</p>
+            <p class="fieldHint">支持视频、合集和 youtu.be 短链接。</p>
           </div>
 
           <div class="panelBlock">
@@ -60,7 +60,7 @@
               <span class="stepBadge">2</span>
               <div>
                 <strong>下载预设</strong>
-                <p>先决定保存位置和默认画质，再解析视频列表。</p>
+                <p>设置保存位置和默认画质。</p>
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@
           <div class="fieldRow">
             <label for="downloadDir">下载路径</label>
             <input id="downloadDir" type="text" spellcheck="false">
-            <p class="fieldHint">本地保存位置由浏览器扩展传给 native host。</p>
+            <p class="fieldHint">本地下载组件会保存到这个位置。</p>
           </div>
 
           <div class="fieldRow">
@@ -77,11 +77,11 @@
               <span class="inlineHint">快捷选择</span>
             </div>
             <div id="qualityPresets" class="qualityPresets" aria-label="画质预设">
-              <button type="button" class="qualityChip active" data-quality="best-mp4">最佳 MP4</button>
-              <button type="button" class="qualityChip" data-quality="1080">1080p</button>
-              <button type="button" class="qualityChip" data-quality="720">720p</button>
-              <button type="button" class="qualityChip" data-quality="480">480p</button>
-              <button type="button" class="qualityChip" data-quality="audio">MP3</button>
+              <button type="button" class="qualityChip active" data-quality="best-mp4" aria-pressed="true">最佳 MP4</button>
+              <button type="button" class="qualityChip" data-quality="1080" aria-pressed="false">1080p</button>
+              <button type="button" class="qualityChip" data-quality="720" aria-pressed="false">720p</button>
+              <button type="button" class="qualityChip" data-quality="480" aria-pressed="false">480p</button>
+              <button type="button" class="qualityChip" data-quality="audio" aria-pressed="false">MP3</button>
             </div>
             <select id="quality" class="qualitySelect">
               <option value="best-mp4">最佳单文件 MP4</option>
@@ -95,7 +95,7 @@
         </section>
 
         <button id="resolve" type="button">解析当前链接</button>
-        <p id="status" role="status">正在读取当前标签页...</p>
+        <p id="status" role="status" aria-live="polite" aria-atomic="true">正在读取当前标签页...</p>
 
         <section class="selection">
           <div class="sectionHead">
@@ -122,9 +122,9 @@
             <h2>下载任务</h2>
             <button id="refresh" type="button" class="ghost">刷新</button>
           </div>
-          <div id="taskSummary" class="summaryChips taskSummary"></div>
+          <div id="taskSummary" class="summaryChips taskSummary" aria-label="任务摘要"></div>
           <section id="taskOverview" class="taskOverview" aria-label="任务总览"></section>
-          <div id="tasksList" class="tasksList"></div>
+          <div id="tasksList" class="tasksList" role="list" aria-label="下载任务列表"></div>
         </section>
       </section>
 
@@ -133,7 +133,7 @@
           <div class="sectionHead">
             <div>
               <h2>YouTube 账号</h2>
-              <p id="accountStatus">可选功能：配置 OAuth 后读取播放列表、喜欢视频和本机最近浏览。</p>
+              <p id="accountStatus" role="status" aria-live="polite" aria-atomic="true">可选功能：配置 OAuth 后读取播放列表、喜欢视频和本机最近浏览。</p>
             </div>
             <button id="logoutAccount" type="button" class="ghost">退出</button>
           </div>
@@ -150,17 +150,17 @@
             <h2>最近浏览</h2>
             <button id="loadAccount" type="button" class="ghost">刷新</button>
           </div>
-          <div id="recentList" class="compactList"></div>
+          <div id="recentList" class="compactList" role="list" aria-label="最近浏览列表"></div>
         </section>
 
         <section class="accountList">
           <h2>喜欢的视频</h2>
-          <div id="likedList" class="compactList"></div>
+          <div id="likedList" class="compactList" role="list" aria-label="喜欢的视频列表"></div>
         </section>
 
         <section class="accountList">
           <h2>播放列表 / 收藏</h2>
-          <div id="playlistList" class="compactList"></div>
+          <div id="playlistList" class="compactList" role="list" aria-label="播放列表和收藏列表"></div>
         </section>
       </section>
     </main>

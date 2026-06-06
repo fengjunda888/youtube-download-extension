@@ -100,6 +100,7 @@ let oauthConfigured = true;
 function setStatus(message, state = "") {
   statusText.textContent = message;
   statusText.dataset.state = state;
+  statusText.setAttribute("aria-busy", String(state === "busy"));
 }
 
 function setButtonBusy(button, busy, label = "") {
@@ -108,6 +109,8 @@ function setButtonBusy(button, busy, label = "") {
   }
   button.classList.toggle("isBusy", busy);
   button.disabled = busy;
+  button.setAttribute("aria-busy", String(busy));
+  button.setAttribute("aria-disabled", String(busy));
   button.textContent = busy ? label : button.dataset.previousLabel || button.textContent;
   if (!busy) {
     delete button.dataset.previousLabel;
@@ -187,7 +190,9 @@ function getDownloadDir() {
 
 function syncQualityPreset(value) {
   qualityPresets.forEach(button => {
-    button.classList.toggle("active", button.dataset.quality === value);
+    const active = button.dataset.quality === value;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
 }
 
@@ -201,13 +206,13 @@ async function resolveCurrentUrl() {
   localStorage.setItem(downloadDirStorageKey, getDownloadDir());
   setButtonBusy(resolveButton, true, "正在解析...");
   setStatus("正在解析链接...", "busy");
-  renderVideos([]);
+  renderResolvingState();
 
   try {
     const response = await sendNative({ action: "resolve", url });
     resolvedVideos = response.videos || [];
     renderVideos(resolvedVideos);
-    setStatus(`解析完成：找到 ${resolvedVideos.length} 个视频。`, "success");
+    setStatus(resolvedVideos.length ? `已找到 ${resolvedVideos.length} 个可下载视频。` : "没有找到可下载视频，请检查链接或稍后重试。", resolvedVideos.length ? "success" : "error");
   } catch (error) {
     resolvedVideos = [];
     renderVideos([]);
@@ -246,7 +251,13 @@ async function downloadSelectedVideos() {
     }
   }
 
-  setStatus(lastError ? `已加入 ${successCount} 个任务，部分失败：${lastError}` : `已加入 ${successCount} 个下载任务。`, lastError ? "error" : "success");
+  if (lastError && !successCount) {
+    setStatus(`下载任务未添加：${lastError}`, "error");
+  } else if (lastError) {
+    setStatus(`已添加 ${successCount} 个任务，部分未添加：${lastError}`, "error");
+  } else {
+    setStatus(`已添加 ${successCount} 个下载任务。`, "success");
+  }
   setButtonBusy(downloadSelectedButton, false);
   updateSelectionState();
   await refreshTasks({ silent: true });
@@ -305,8 +316,9 @@ async function loadAccountData() {
     return;
   }
 
-  loginAccountButton.disabled = true;
-  loadAccountButton.disabled = true;
+  setButtonBusy(loginAccountButton, true, "连接中...");
+  setButtonBusy(loadAccountButton, true, "刷新中...");
+  accountStatus.setAttribute("aria-busy", "true");
   accountStatus.textContent = "正在读取 YouTube 账号数据...";
 
   try {
@@ -317,8 +329,9 @@ async function loadAccountData() {
     accountStatus.textContent = `读取失败：${friendlyError(error)}`;
     renderAccount({});
   } finally {
-    loginAccountButton.disabled = false;
-    loadAccountButton.disabled = false;
+    accountStatus.setAttribute("aria-busy", "false");
+    setButtonBusy(loginAccountButton, false);
+    setButtonBusy(loadAccountButton, false);
   }
 }
 
@@ -339,10 +352,10 @@ function renderVideos(videos) {
   selectAllInput.checked = false;
   selectAllInput.indeterminate = false;
   if (!videos.length) {
-    resolveSummary.textContent = "还没有解析视频。";
+    resolveSummary.textContent = "等待链接解析。";
     resolveChips.innerHTML = "";
     selectionMeta.textContent = "未选择视频";
-    videoList.innerHTML = emptyState("等待解析", "粘贴 YouTube 视频或合集链接，然后点击解析。", "", {
+    videoList.innerHTML = emptyState("等待解析", "输入 YouTube 链接后开始解析。", "", {
       label: "开始解析",
       action: "resolve"
     });
@@ -351,7 +364,7 @@ function renderVideos(videos) {
     return;
   }
 
-  resolveSummary.textContent = `共 ${videos.length} 个视频，可选择一个或多个下载。`;
+  resolveSummary.textContent = `已找到 ${videos.length} 个视频，可多选下载。`;
   resolveChips.innerHTML = `
     <span>${videos.length} 个视频</span>
     <span>${escapeHtml(qualityText(qualityInput.value))}</span>
@@ -359,7 +372,7 @@ function renderVideos(videos) {
   `;
   videoList.innerHTML = videos.map((video, index) => `
     <label class="videoItem checked">
-      <input type="checkbox" data-video-index="${index}" checked>
+      <input type="checkbox" data-video-index="${index}" aria-label="选择 ${escapeHtml(video.title || `第 ${index + 1} 个视频`)}" checked>
       <span class="videoThumbWrap">
         <span class="videoThumb" aria-hidden="true"></span>
         <span class="thumbBadge">${escapeHtml(video.duration || "视频")}</span>
@@ -381,6 +394,26 @@ function renderVideos(videos) {
   videoList.querySelectorAll("input[type='checkbox']").forEach(input => {
     input.addEventListener("change", updateSelectionState);
   });
+  updateSelectionState();
+}
+
+function renderResolvingState() {
+  videoList.closest(".selection")?.classList.add("isEmpty");
+  selectAllInput.checked = false;
+  selectAllInput.indeterminate = false;
+  resolveSummary.textContent = "正在解析链接。";
+  resolveChips.innerHTML = "";
+  selectionMeta.textContent = "未选择视频";
+  videoList.innerHTML = `
+    <div class="loadingState" role="status" aria-live="polite" aria-label="正在解析链接">
+      <span class="loadingIcon" aria-hidden="true"></span>
+      <div>
+        <strong>正在解析</strong>
+        <span>正在读取视频和合集信息。</span>
+        <span class="loadingBar" aria-hidden="true"><span></span></span>
+      </div>
+    </div>
+  `;
   updateSelectionState();
 }
 
@@ -415,7 +448,7 @@ function renderTasks(tasks) {
       <strong>下载概览</strong>
       <span>总进度 ${averageProgress.toFixed(averageProgress ? 1 : 0)}%</span>
     </div>
-    <div class="bar"><span style="width:${averageProgress}%"></span></div>
+    <div class="bar" role="progressbar" aria-label="总进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${averageProgress.toFixed(1)}"><span style="width:${averageProgress}%"></span></div>
     <div class="overviewMeta">
       <span>${runningCount ? `当前 ${runningCount} 个任务处理中` : "当前没有进行中的任务"}</span>
       <span>${latestSpeed ? `速度 ${escapeHtml(latestSpeed)}` : "等待速度信息"}</span>
@@ -434,9 +467,10 @@ function renderTasks(tasks) {
     const quality = task.Quality || task.quality || "";
     const canCancel = status === "running" || status === "starting";
     const phase = taskPhaseText(status, percent);
+    const taskTitle = `${statusTextFor(status)}，进度 ${percent.toFixed(percent ? 1 : 0)}%`;
 
     return `
-      <article class="task task-${escapeHtml(status)}">
+      <article class="task task-${escapeHtml(status)}" role="listitem" aria-label="${escapeHtml(taskTitle)}">
         <div class="taskTop">
           <strong><span class="statusPill ${escapeHtml(status)}">${escapeHtml(statusTextFor(status))}</span></strong>
           <span class="taskPercent">${percent.toFixed(percent ? 1 : 0)}%</span>
@@ -445,16 +479,18 @@ function renderTasks(tasks) {
           <span>${escapeHtml(phase)}</span>
           <span>${escapeHtml(progressText(status, percent))}</span>
         </div>
-        <div class="bar"><span style="width:${percent}%"></span></div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent.toFixed(1)}"><span style="width:${percent}%"></span></div>
         <div class="taskMetaRow">
           <span class="metaChip">${escapeHtml(qualityText(quality))}</span>
           ${speed ? `<span class="metaChip subtle">${escapeHtml(speed)}</span>` : ""}
           ${eta ? `<span class="metaChip subtle">ETA ${escapeHtml(eta)}</span>` : ""}
         </div>
         <div class="line">${escapeHtml(line)}</div>
-        <div class="taskActions">
-          <button class="ghost small" data-cancel="${escapeHtml(id)}" ${canCancel ? "" : "disabled"}>取消</button>
-        </div>
+        ${canCancel ? `
+          <div class="taskActions">
+            <button class="ghost small" data-cancel="${escapeHtml(id)}">取消</button>
+          </div>
+        ` : ""}
       </article>
     `;
   }).join("");
@@ -520,7 +556,7 @@ function renderLinkList(container, items, mapItem) {
   container.innerHTML = items.map(item => {
     const mapped = mapItem(item);
     return `
-      <article class="compactItem">
+      <article class="compactItem" role="listitem">
         <span class="miniThumbWrap">
           <span class="miniThumb" aria-hidden="true"></span>
         </span>
@@ -532,7 +568,7 @@ function renderLinkList(container, items, mapItem) {
           ${mapped.meta ? `<span class="videoMetaRow"><span class="metaChip subtle">${escapeHtml(mapped.meta)}</span></span>` : ""}
           <span>${escapeHtml(mapped.subtitle || "")}</span>
         </div>
-        <button class="ghost small" data-use-url="${escapeHtml(mapped.url)}">解析</button>
+        <button class="ghost small" data-use-url="${escapeHtml(mapped.url)}" aria-label="解析 ${escapeHtml(mapped.title || mapped.url)}">解析</button>
       </article>
     `;
   }).join("");
@@ -556,7 +592,9 @@ function updateSelectionState() {
   selectAllInput.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
   selectionMeta.textContent = checkboxes.length ? `已选 ${selectedCount} / ${checkboxes.length}` : "未选择视频";
   checkboxes.forEach(input => {
-    input.closest(".videoItem")?.classList.toggle("checked", input.checked);
+    const item = input.closest(".videoItem");
+    item?.classList.toggle("checked", input.checked);
+    item?.setAttribute("aria-selected", String(input.checked));
   });
 }
 
@@ -567,7 +605,7 @@ function emptyState(title, description, tone = "", action = null) {
       <div>
         <strong>${escapeHtml(title)}</strong>
         <span>${escapeHtml(description)}</span>
-        ${action ? `<button class="ghost small emptyAction" type="button" data-empty-action="${escapeHtml(action.action)}">${escapeHtml(action.label)}</button>` : ""}
+        ${action ? `<button class="ghost small emptyAction" type="button" data-empty-action="${escapeHtml(action.action)}" aria-label="${escapeHtml(action.label)}">${escapeHtml(action.label)}</button>` : ""}
       </div>
     </div>
   `;
@@ -636,7 +674,7 @@ function taskPhaseText(status, percent) {
   if (status === "done") return "已保存到本地";
   if (status === "error") return "下载失败";
   if (status === "canceled") return "已取消任务";
-  if (status === "starting") return "正在启动 native host";
+  if (status === "starting") return "正在准备下载";
   if (percent >= 95) return "正在收尾合并";
   if (percent > 0) return "正在下载媒体";
   return "等待下载开始";
@@ -652,7 +690,7 @@ function progressText(status, percent) {
 function friendlyError(error) {
   const message = String(error?.message || error || "");
   if (/Native host|native host|disconnected|did not respond|rejected/i.test(message)) {
-    return "下载助手未连接。请确认 native host 已安装并保持运行。";
+    return "本地下载组件未连接，请确认已安装并重新打开浏览器。";
   }
   if (/OAuth|Client ID|identity|getAuthToken/i.test(message)) {
     return "账号授权尚未配置。下载不受影响，配置 OAuth 后可读取收藏和播放列表。";
