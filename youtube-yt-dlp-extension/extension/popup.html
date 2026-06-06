@@ -9,38 +9,29 @@
   <body>
     <main>
       <header class="appHeader">
-        <img class="mark" src="icons/icon-48.png" alt="" aria-hidden="true">
+        <span class="mark" aria-hidden="true"></span>
         <div class="titleBlock">
           <div class="titleRow">
             <h1>YouTube 下载助手</h1>
-            <span id="version" class="version">v0.2.0</span>
+            <span id="version" class="version">v0.2.1</span>
           </div>
-          <p>yt-dlp powered · by fengjunda888</p>
+          <p>本地下载 · by fengjunda888</p>
         </div>
       </header>
 
       <nav class="tabs" aria-label="页面" role="tablist">
-        <button id="resolveTab" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="resolveView" tabindex="0" data-view="resolve"><span class="tabIcon resolveIcon" aria-hidden="true"></span>解析选择</button>
+        <button id="resolveTab" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="resolveView" tabindex="0" data-view="resolve"><span class="tabIcon resolveIcon" aria-hidden="true"></span>视频检测</button>
         <button id="tasksTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="tasksView" tabindex="-1" data-view="tasks"><span class="tabIcon tasksIcon" aria-hidden="true"></span>下载任务</button>
         <button id="accountTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="accountView" tabindex="-1" data-view="account"><span class="tabIcon accountIcon" aria-hidden="true"></span>账号</button>
       </nav>
 
       <section id="resolveView" class="view active" role="tabpanel" aria-labelledby="resolveTab">
-        <section class="nowPlaying" aria-label="当前页面">
-          <span class="nowIcon" aria-hidden="true"></span>
-          <div>
-            <strong>当前页面</strong>
-            <p>YouTube 视频或合集可直接检测</p>
-          </div>
-        </section>
-
         <section class="panel">
           <div class="panelBlock">
             <div class="blockHead">
-              <span class="stepBadge">1</span>
               <div>
-                <strong>链接</strong>
-                <p>使用当前标签页，或粘贴 YouTube 链接。</p>
+                <strong>视频链接</strong>
+                <p>从当前 YouTube 页面识别视频，选择后添加到下载。</p>
               </div>
             </div>
             <div class="sourceActions">
@@ -51,30 +42,14 @@
 
           <div class="fieldRow">
             <label for="url">YouTube 链接</label>
-            <input id="url" type="text" spellcheck="false" aria-describedby="urlHint">
+            <input id="url" type="text" spellcheck="false" aria-describedby="urlHint" placeholder="粘贴 YouTube 视频或播放列表链接">
             <p id="urlHint" class="fieldHint" aria-live="polite">支持视频、合集和 youtu.be 短链接。</p>
-          </div>
-
-          <div class="panelBlock">
-            <div class="blockHead">
-              <span class="stepBadge">2</span>
-              <div>
-                <strong>下载设置</strong>
-                <p>选择保存位置和默认画质。</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="fieldRow">
-            <label for="downloadDir">下载路径</label>
-            <input id="downloadDir" type="text" spellcheck="false">
-            <p class="fieldHint">本地下载组件会保存到这个位置。</p>
           </div>
 
           <div class="fieldRow">
             <div class="labelRow">
               <label for="quality">画质</label>
-              <span class="inlineHint">快捷选择</span>
+              <span class="inlineHint">下载格式</span>
             </div>
             <div id="qualityPresets" class="qualityPresets" aria-label="画质预设">
               <button type="button" class="qualityChip active" data-quality="best-mp4" aria-pressed="true">最佳 MP4</button>
@@ -90,8 +65,23 @@
               <option value="480">最高 480p</option>
               <option value="audio">仅音频 MP3</option>
             </select>
-            <p class="fieldHint">优先使用兼容性更好的 MP4；音频模式会转为 MP3。</p>
+            <p class="fieldHint">优先保存为兼容性更好的 MP4；音频可单独保存为 MP3。</p>
           </div>
+
+          <details class="advancedSettings">
+            <summary>更多选项</summary>
+            <div class="fieldRow compact">
+              <label for="downloadDir">下载路径</label>
+              <input id="downloadDir" type="text" spellcheck="false">
+            </div>
+            <label class="toggleRow" for="useBrowserCookies">
+              <span>
+                <strong>使用浏览器登录状态</strong>
+                <small>仅在 YouTube 要求确认登录时开启。</small>
+              </span>
+              <input id="useBrowserCookies" type="checkbox">
+            </label>
+          </details>
         </section>
 
         <button id="resolve" type="button" disabled>检测视频</button>
@@ -101,7 +91,7 @@
           <div class="sectionHead">
             <div>
               <h2>检测结果</h2>
-              <p id="resolveSummary">还没有检测视频。</p>
+              <p id="resolveSummary">还没有检测视频。检测后可选择要下载的视频。</p>
               <div id="resolveChips" class="summaryChips"></div>
             </div>
             <div class="selectionTools">
@@ -133,14 +123,14 @@
           <div class="sectionHead">
             <div>
               <h2>YouTube 账号</h2>
-              <p id="accountStatus" role="status" aria-live="polite" aria-atomic="true">可选功能：配置 OAuth 后读取播放列表、喜欢视频和本机最近浏览。</p>
+              <p id="accountStatus" role="status" aria-live="polite" aria-atomic="true">可选功能：读取播放列表、喜欢视频和本机最近浏览。</p>
             </div>
             <button id="logoutAccount" type="button" class="ghost" hidden>退出</button>
           </div>
           <button id="loginAccount" type="button" class="secondary">登录 YouTube</button>
           <div class="noticeBar">
             <span class="noticeIcon" aria-hidden="true"></span>
-            <p>账号授权是可选功能；解析和下载不需要登录。</p>
+            <p>账号授权是可选功能；检测和下载不需要登录。</p>
           </div>
           <div id="accountSummary" class="accountSummary"></div>
         </section>

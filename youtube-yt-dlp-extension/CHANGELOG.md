@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Polished the popup with a cleaner YouTube-style layout.
+- Enlarged video thumbnails for clearer previews.
+- Refined the detect, task, and account screens for GitHub screenshots.
+- Improved README presentation for public release.
+
 ## 0.2.0
 
 - Added Windows and macOS native host install flows.

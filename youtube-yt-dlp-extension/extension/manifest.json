@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "YouTube 下载助手 · yt-dlp",
   "short_name": "YT yt-dlp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "YouTube download helper by fengjunda888, powered by yt-dlp.",
   "author": "fengjunda888",
   "homepage_url": "https://github.com/fengjunda888/youtube-download-extension",
