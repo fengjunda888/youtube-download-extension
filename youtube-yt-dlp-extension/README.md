@@ -1,6 +1,6 @@
 ﻿# YouTube yt-dlp Downloader
 
-A Chrome extension for sending YouTube videos and playlists to a local `yt-dlp` native host. It supports Windows and macOS, uses Chrome Native Messaging, and does not require a long-running local web server.
+A Chrome extension for sending YouTube videos and playlists to a local `yt-dlp` download component. It supports Windows and macOS, uses Chrome Native Messaging, and does not require a long-running local web server.
 
 中文：一个基于 `yt-dlp` 的 YouTube 视频下载 Chrome 扩展，支持 Windows 和 macOS，支持视频解析、合集解析、多选下载、全选、画质选择、下载进度显示和音频 MP3 提取。
 
@@ -8,8 +8,24 @@ Author: [fengjunda888](https://github.com/fengjunda888)
 
 Keywords: YouTube download extension, YouTube video downloader, yt-dlp Chrome extension, youtube-dl, playlist downloader, 视频下载, YouTube 视频下载, 油管视频下载, YouTube 下载插件, Chrome 下载扩展.
 
+## Screenshots
+
+Ready:
 ![Ready state](docs/screenshots/popup-ready.png)
+
+Resolving:
+![Resolving state](docs/screenshots/popup-resolving.png)
+
+Invalid link:
+![Invalid link state](docs/screenshots/popup-invalid.png)
+
+Empty state:
+![Empty state](docs/screenshots/popup-empty-check.png)
+
+Task list:
 ![Task list](docs/screenshots/popup-tasks.png)
+
+Account:
 ![Account tab](docs/screenshots/popup-account.png)
 
 ## Features

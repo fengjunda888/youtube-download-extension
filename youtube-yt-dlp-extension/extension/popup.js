@@ -2,6 +2,7 @@ const defaultDownloadDir = "%USERPROFILE%\\Desktop\\youtube videos";
 const downloadDirStorageKey = "ytDlpDownloadDir";
 
 const urlInput = document.getElementById("url");
+const urlHint = document.getElementById("urlHint");
 const downloadDirInput = document.getElementById("downloadDir");
 const qualityInput = document.getElementById("quality");
 const statusText = document.getElementById("status");
@@ -35,12 +36,33 @@ const views = {
 };
 const tabs = [...document.querySelectorAll(".tab")];
 
+function previewThumbnail(title, color = "#ff0033") {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop stop-color="${color}" stop-opacity="0.95"/>
+          <stop offset="1" stop-color="#111"/>
+        </linearGradient>
+      </defs>
+      <rect width="320" height="180" rx="12" fill="url(#bg)"/>
+      <rect x="24" y="24" width="168" height="14" rx="7" fill="rgba(255,255,255,0.20)"/>
+      <rect x="24" y="48" width="250" height="10" rx="5" fill="rgba(255,255,255,0.13)"/>
+      <circle cx="160" cy="94" r="34" fill="rgba(0,0,0,0.42)"/>
+      <path d="M149 74l35 20-35 20z" fill="#fff"/>
+      <text x="24" y="157" fill="rgba(255,255,255,0.88)" font-family="Arial, sans-serif" font-size="18" font-weight="700">${escapeHtml(title)}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 const previewVideos = [
   {
     id: "dQw4w9WgXcQ",
     url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     title: "示例视频：准备下载",
     uploader: "示例频道",
+    thumbnail: previewThumbnail("准备下载", "#ff0033"),
     duration: "3:33",
     index: 1
   },
@@ -49,6 +71,7 @@ const previewVideos = [
     url: "https://www.youtube.com/watch?v=KpcaZCkYFv4",
     title: "合集视频：可选 1080p 画质",
     uploader: "示例频道",
+    thumbnail: previewThumbnail("合集视频", "#065fd4"),
     duration: "8:14",
     index: 2
   }
@@ -83,12 +106,14 @@ const previewAccount = {
   recentHistory: previewVideos.map(video => ({
     url: video.url,
     title: video.title,
+    thumbnail: video.thumbnail,
+    duration: video.duration,
     lastVisitTime: Date.now(),
     visitCount: 3
   })),
   likedVideos: previewVideos,
   playlists: [
-    { id: "PLdemo", title: "收藏的教程合集", count: 18, thumbnail: "icons/icon-48.png" }
+    { id: "PLdemo", title: "收藏的教程合集", count: 18, thumbnail: previewThumbnail("教程合集", "#0f9d58") }
   ]
 };
 
@@ -184,6 +209,38 @@ function isYouTubeUrl(value) {
   }
 }
 
+function syncUrlHint() {
+  const value = urlInput.value.trim();
+  const emptyResolveButton = videoList.querySelector('[data-empty-action="resolve"]');
+  if (!value) {
+    urlHint.textContent = "支持视频、合集和 youtu.be 短链接。";
+    urlHint.dataset.state = "";
+    urlInput.dataset.state = "";
+    if (!resolveButton.classList.contains("isBusy")) {
+      resolveButton.disabled = true;
+      resolveButton.setAttribute("aria-disabled", "true");
+    }
+    if (emptyResolveButton) {
+      emptyResolveButton.disabled = true;
+      emptyResolveButton.setAttribute("aria-disabled", "true");
+    }
+    return;
+  }
+
+  const valid = isYouTubeUrl(value);
+  urlHint.textContent = valid ? "可解析此 YouTube 链接。" : "仅支持 YouTube 视频、合集或 youtu.be 链接。";
+  urlHint.dataset.state = valid ? "success" : "error";
+  urlInput.dataset.state = valid ? "success" : "error";
+  if (!resolveButton.classList.contains("isBusy")) {
+    resolveButton.disabled = !valid;
+    resolveButton.setAttribute("aria-disabled", String(!valid));
+  }
+  if (emptyResolveButton) {
+    emptyResolveButton.disabled = !valid;
+    emptyResolveButton.setAttribute("aria-disabled", String(!valid));
+  }
+}
+
 function getDownloadDir() {
   return downloadDirInput.value.trim() || defaultDownloadDir;
 }
@@ -204,19 +261,19 @@ async function resolveCurrentUrl() {
   }
 
   localStorage.setItem(downloadDirStorageKey, getDownloadDir());
-  setButtonBusy(resolveButton, true, "正在解析...");
-  setStatus("正在解析链接...", "busy");
+  setButtonBusy(resolveButton, true, "正在检测...");
+  setStatus("正在检测视频信息...", "busy");
   renderResolvingState();
 
   try {
     const response = await sendNative({ action: "resolve", url });
     resolvedVideos = response.videos || [];
     renderVideos(resolvedVideos);
-    setStatus(resolvedVideos.length ? `已找到 ${resolvedVideos.length} 个可下载视频。` : "没有找到可下载视频，请检查链接或稍后重试。", resolvedVideos.length ? "success" : "error");
+    setStatus(resolvedVideos.length ? `已找到 ${resolvedVideos.length} 个视频。` : "没有找到可用视频，请检查链接或稍后重试。", resolvedVideos.length ? "success" : "error");
   } catch (error) {
     resolvedVideos = [];
     renderVideos([]);
-    setStatus(`解析失败：${friendlyError(error)}`, "error");
+    setStatus(`检测失败：${friendlyError(error)}`, "error");
   } finally {
     setButtonBusy(resolveButton, false);
   }
@@ -231,8 +288,8 @@ async function downloadSelectedVideos() {
   }
 
   localStorage.setItem(downloadDirStorageKey, downloadDir);
-  setButtonBusy(downloadSelectedButton, true, `正在加入（${selected.length}）...`);
-  setStatus(`正在加入 ${selected.length} 个下载任务...`, "busy");
+  setButtonBusy(downloadSelectedButton, true, `正在添加（${selected.length}）...`);
+  setStatus(`正在添加 ${selected.length} 个下载任务...`, "busy");
 
   let successCount = 0;
   let lastError = "";
@@ -293,12 +350,18 @@ async function refreshTasks({ silent = false } = {}) {
   }
 }
 
-async function cancelTask(id) {
+async function cancelTask(id, button = null) {
+  if (button) {
+    setButtonBusy(button, true, "取消中...");
+  }
   try {
     await sendNative({ action: "cancel", id });
     await refreshTasks();
   } catch (error) {
     setStatus(`取消失败：${friendlyError(error)}`, "error");
+    if (button) {
+      setButtonBusy(button, false);
+    }
   }
 }
 
@@ -352,11 +415,11 @@ function renderVideos(videos) {
   selectAllInput.checked = false;
   selectAllInput.indeterminate = false;
   if (!videos.length) {
-    resolveSummary.textContent = "等待链接解析。";
+    resolveSummary.textContent = "等待检测视频。";
     resolveChips.innerHTML = "";
     selectionMeta.textContent = "未选择视频";
-    videoList.innerHTML = emptyState("等待解析", "输入 YouTube 链接后开始解析。", "", {
-      label: "开始解析",
+    videoList.innerHTML = emptyState("等待检测", "输入 YouTube 链接后检测可下载视频。", "", {
+      label: "检测视频",
       action: "resolve"
     });
     bindEmptyActions(videoList);
@@ -364,7 +427,7 @@ function renderVideos(videos) {
     return;
   }
 
-  resolveSummary.textContent = `已找到 ${videos.length} 个视频，可多选下载。`;
+  resolveSummary.textContent = `已找到 ${videos.length} 个视频，可多选添加。`;
   resolveChips.innerHTML = `
     <span>${videos.length} 个视频</span>
     <span>${escapeHtml(qualityText(qualityInput.value))}</span>
@@ -373,10 +436,7 @@ function renderVideos(videos) {
   videoList.innerHTML = videos.map((video, index) => `
     <label class="videoItem checked">
       <input type="checkbox" data-video-index="${index}" aria-label="选择 ${escapeHtml(video.title || `第 ${index + 1} 个视频`)}" checked>
-      <span class="videoThumbWrap">
-        <span class="videoThumb" aria-hidden="true"></span>
-        <span class="thumbBadge">${escapeHtml(video.duration || "视频")}</span>
-      </span>
+      ${videoThumbHtml(video, "video")}
       <span class="videoBody">
         <span class="videoTitleRow">
           <strong>${escapeHtml(video.index ? `${video.index}. ${video.title}` : video.title)}</strong>
@@ -401,14 +461,14 @@ function renderResolvingState() {
   videoList.closest(".selection")?.classList.add("isEmpty");
   selectAllInput.checked = false;
   selectAllInput.indeterminate = false;
-  resolveSummary.textContent = "正在解析链接。";
+  resolveSummary.textContent = "正在检测链接。";
   resolveChips.innerHTML = "";
   selectionMeta.textContent = "未选择视频";
   videoList.innerHTML = `
-    <div class="loadingState" role="status" aria-live="polite" aria-label="正在解析链接">
+    <div class="loadingState" role="status" aria-live="polite" aria-label="正在检测链接">
       <span class="loadingIcon" aria-hidden="true"></span>
       <div>
-        <strong>正在解析</strong>
+        <strong>正在检测</strong>
         <span>正在读取视频和合集信息。</span>
         <span class="loadingBar" aria-hidden="true"><span></span></span>
       </div>
@@ -422,8 +482,8 @@ function renderTasks(tasks) {
     taskSummary.innerHTML = "";
     taskOverview.hidden = true;
     taskOverview.innerHTML = "";
-    tasksList.innerHTML = emptyState("暂无下载任务", "解析视频后，选中的下载会显示在这里。", "", {
-      label: "去解析视频",
+    tasksList.innerHTML = emptyState("暂无下载任务", "添加视频后，下载进度会显示在这里。", "", {
+      label: "去检测视频",
       action: "resolve-view"
     });
     bindEmptyActions(tasksList);
@@ -496,12 +556,16 @@ function renderTasks(tasks) {
   }).join("");
 
   tasksList.querySelectorAll("[data-cancel]").forEach(button => {
-    button.addEventListener("click", () => cancelTask(button.dataset.cancel));
+    button.addEventListener("click", () => cancelTask(button.dataset.cancel, button));
   });
 }
 
 function renderAccount(data) {
   const channel = data.channel;
+  const connected = Boolean(channel?.title);
+  logoutAccountButton.hidden = !connected;
+  loginAccountButton.textContent = connected ? "刷新账号数据" : "登录 YouTube";
+  loginAccountButton.setAttribute("aria-label", connected ? "刷新 YouTube 账号数据" : "登录 YouTube");
   if (channel?.title) {
     accountSummary.innerHTML = `
       <div class="accountCard">
@@ -525,6 +589,7 @@ function renderAccount(data) {
     kind: "历史",
     meta: `访问 ${item.visitCount || 1} 次`,
     subtitle: item.lastVisitTime ? `最近访问：${new Date(item.lastVisitTime).toLocaleString()}` : item.url,
+    thumbnail: item.thumbnail,
     url: item.url
   }));
   renderLinkList(likedList, data.likedVideos || [], item => ({
@@ -532,6 +597,7 @@ function renderAccount(data) {
     kind: "喜欢",
     meta: item.duration || "已喜欢",
     subtitle: item.channelTitle || item.uploader || item.url,
+    thumbnail: item.thumbnail,
     url: item.url
   }));
   renderLinkList(playlistList, data.playlists || [], item => ({
@@ -539,6 +605,7 @@ function renderAccount(data) {
     kind: "列表",
     meta: `列表 ${item.id || ""}`.trim(),
     subtitle: `${item.count || 0} 个视频`,
+    thumbnail: item.thumbnail,
     url: `https://www.youtube.com/playlist?list=${item.id}`
   }));
 }
@@ -557,9 +624,7 @@ function renderLinkList(container, items, mapItem) {
     const mapped = mapItem(item);
     return `
       <article class="compactItem" role="listitem">
-        <span class="miniThumbWrap">
-          <span class="miniThumb" aria-hidden="true"></span>
-        </span>
+        ${videoThumbHtml(mapped, "mini")}
         <div>
           <span class="compactTitleRow">
             <strong>${escapeHtml(mapped.title || mapped.url)}</strong>
@@ -568,7 +633,7 @@ function renderLinkList(container, items, mapItem) {
           ${mapped.meta ? `<span class="videoMetaRow"><span class="metaChip subtle">${escapeHtml(mapped.meta)}</span></span>` : ""}
           <span>${escapeHtml(mapped.subtitle || "")}</span>
         </div>
-        <button class="ghost small" data-use-url="${escapeHtml(mapped.url)}" aria-label="解析 ${escapeHtml(mapped.title || mapped.url)}">解析</button>
+        <button class="ghost small" data-use-url="${escapeHtml(mapped.url)}" aria-label="检测 ${escapeHtml(mapped.title || mapped.url)}">检测</button>
       </article>
     `;
   }).join("");
@@ -576,17 +641,38 @@ function renderLinkList(container, items, mapItem) {
   container.querySelectorAll("[data-use-url]").forEach(button => {
     button.addEventListener("click", () => {
       urlInput.value = button.dataset.useUrl;
+      syncUrlHint();
       setView("resolve");
-      setStatus("已填入链接，可以开始解析。", "success");
+      setStatus("已填入链接，可以开始检测。", "success");
     });
   });
+}
+
+function videoThumbHtml(item, size = "video") {
+  const wrapClass = size === "mini" ? "miniThumbWrap" : "videoThumbWrap";
+  const thumbClass = size === "mini" ? "miniThumb" : "videoThumb";
+  const badgeClass = size === "mini" ? "miniBadge" : "thumbBadge";
+  const label = item.duration || (item.kind === "列表" ? "列表" : size === "video" ? "视频" : "");
+  const image = item.thumbnail || item.thumbnailUrl || item.thumbnails?.[0]?.url || "";
+  const media = image
+    ? `<img class="${thumbClass}" src="${escapeHtml(image)}" alt="" loading="lazy">`
+    : `<span class="${thumbClass}" aria-hidden="true"></span>`;
+  const badge = label ? `<span class="${badgeClass}">${escapeHtml(label)}</span>` : "";
+  return `
+    <span class="${wrapClass}">
+      ${media}
+      ${badge}
+    </span>
+  `;
 }
 
 function updateSelectionState() {
   const checkboxes = [...videoList.querySelectorAll("input[type='checkbox']")];
   const selectedCount = checkboxes.filter(input => input.checked).length;
+  const qualityLabel = qualityShortText(qualityInput.value);
   downloadSelectedButton.disabled = selectedCount === 0;
-  downloadSelectedButton.textContent = selectedCount ? `下载选中视频（${selectedCount}）` : "下载选中视频";
+  downloadSelectedButton.textContent = selectedCount ? `添加 ${selectedCount} 个 · ${qualityLabel}` : "添加到下载";
+  downloadSelectedButton.setAttribute("aria-label", selectedCount ? `添加 ${selectedCount} 个选中视频，画质 ${qualityText(qualityInput.value)}` : "添加到下载");
   selectAllInput.disabled = checkboxes.length === 0;
   selectAllInput.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
   selectAllInput.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
@@ -595,6 +681,9 @@ function updateSelectionState() {
     const item = input.closest(".videoItem");
     item?.classList.toggle("checked", input.checked);
     item?.setAttribute("aria-selected", String(input.checked));
+  });
+  videoList.querySelectorAll(".videoQualityBadge").forEach(badge => {
+    badge.textContent = qualityLabel;
   });
 }
 
@@ -735,18 +824,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   syncQualityPreset(qualityInput.value);
 
   if (previewMode) {
-    urlInput.value = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLdemo";
-    resolvedVideos = previewMode === "empty" ? [] : previewVideos;
-    renderVideos(["tasks", "empty"].includes(previewMode) ? [] : previewVideos);
+    urlInput.value = previewMode === "invalid" ? "https://example.com/not-youtube" : "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLdemo";
+    syncUrlHint();
+    resolvedVideos = ["empty", "invalid"].includes(previewMode) ? [] : previewVideos;
+    if (previewMode === "resolving") {
+      renderResolvingState();
+    } else {
+      renderVideos(["tasks", "empty", "invalid"].includes(previewMode) ? [] : previewVideos);
+    }
     renderTasks(previewMode === "tasks" ? previewTasks : []);
     renderAccount(previewMode === "account" ? previewAccount : {});
-    setStatus("准备好了。", "success");
+    if (previewMode === "resolving") {
+      setStatus("正在检测视频信息...", "busy");
+    } else if (previewMode === "invalid") {
+      setStatus("这不是 YouTube 链接。", "error");
+    } else {
+      setStatus("准备好了。", "success");
+    }
     setView(["tasks", "account"].includes(previewMode) ? previewMode : "resolve");
     return;
   }
 
   const currentUrl = await getActiveTabUrl();
   urlInput.value = currentUrl;
+  syncUrlHint();
   setStatus(isYouTubeUrl(currentUrl) ? "准备好了。" : "请打开一个 YouTube 视频页。");
   renderVideos([]);
   await refreshTasks();
@@ -785,17 +886,34 @@ logoutAccountButton.addEventListener("click", logoutAccount);
 useCurrentPageButton.addEventListener("click", async () => {
   const currentUrl = await getActiveTabUrl();
   urlInput.value = currentUrl;
+  syncUrlHint();
   setStatus(isYouTubeUrl(currentUrl) ? "已填入当前页面链接。" : "当前页面不是 YouTube 视频页。", isYouTubeUrl(currentUrl) ? "success" : "error");
 });
 clearUrlButton.addEventListener("click", () => {
   urlInput.value = "";
+  syncUrlHint();
   setStatus("链接已清空。", "success");
 });
-qualityInput.addEventListener("change", () => syncQualityPreset(qualityInput.value));
+urlInput.addEventListener("input", syncUrlHint);
+urlInput.addEventListener("keydown", event => {
+  if (event.key !== "Enter") {
+    return;
+  }
+  event.preventDefault();
+  syncUrlHint();
+  if (!resolveButton.disabled) {
+    resolveCurrentUrl();
+  }
+});
+qualityInput.addEventListener("change", () => {
+  syncQualityPreset(qualityInput.value);
+  updateSelectionState();
+});
 qualityPresets.forEach(button => {
   button.addEventListener("click", () => {
     qualityInput.value = button.dataset.quality;
     syncQualityPreset(qualityInput.value);
+    updateSelectionState();
     setStatus(`已切换为 ${qualityText(qualityInput.value)}。`, "success");
   });
 });

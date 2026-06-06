@@ -29,8 +29,8 @@
         <section class="nowPlaying" aria-label="当前页面">
           <span class="nowIcon" aria-hidden="true"></span>
           <div>
-            <strong>当前 YouTube 页面</strong>
-            <p>可解析当前视频、合集或粘贴链接</p>
+            <strong>当前页面</strong>
+            <p>YouTube 视频或合集可直接检测</p>
           </div>
         </section>
 
@@ -39,8 +39,8 @@
             <div class="blockHead">
               <span class="stepBadge">1</span>
               <div>
-                <strong>链接来源</strong>
-                <p>使用当前标签页，或粘贴视频 / 合集链接。</p>
+                <strong>链接</strong>
+                <p>使用当前标签页，或粘贴 YouTube 链接。</p>
               </div>
             </div>
             <div class="sourceActions">
@@ -51,16 +51,16 @@
 
           <div class="fieldRow">
             <label for="url">YouTube 链接</label>
-            <input id="url" type="text" spellcheck="false">
-            <p class="fieldHint">支持视频、合集和 youtu.be 短链接。</p>
+            <input id="url" type="text" spellcheck="false" aria-describedby="urlHint">
+            <p id="urlHint" class="fieldHint" aria-live="polite">支持视频、合集和 youtu.be 短链接。</p>
           </div>
 
           <div class="panelBlock">
             <div class="blockHead">
               <span class="stepBadge">2</span>
               <div>
-                <strong>下载预设</strong>
-                <p>设置保存位置和默认画质。</p>
+                <strong>下载设置</strong>
+                <p>选择保存位置和默认画质。</p>
               </div>
             </div>
           </div>
@@ -94,14 +94,14 @@
           </div>
         </section>
 
-        <button id="resolve" type="button">解析当前链接</button>
+        <button id="resolve" type="button" disabled>检测视频</button>
         <p id="status" role="status" aria-live="polite" aria-atomic="true">正在读取当前标签页...</p>
 
         <section class="selection">
           <div class="sectionHead">
             <div>
-              <h2>解析结果</h2>
-              <p id="resolveSummary">还没有解析视频。</p>
+              <h2>检测结果</h2>
+              <p id="resolveSummary">还没有检测视频。</p>
               <div id="resolveChips" class="summaryChips"></div>
             </div>
             <div class="selectionTools">
@@ -110,7 +110,7 @@
             </div>
           </div>
           <div class="actionDock">
-            <button id="downloadSelected" type="button" disabled>下载选中视频</button>
+            <button id="downloadSelected" type="button" disabled>添加到下载</button>
           </div>
           <div id="videoList" class="videoList"></div>
         </section>
@@ -135,7 +135,7 @@
               <h2>YouTube 账号</h2>
               <p id="accountStatus" role="status" aria-live="polite" aria-atomic="true">可选功能：配置 OAuth 后读取播放列表、喜欢视频和本机最近浏览。</p>
             </div>
-            <button id="logoutAccount" type="button" class="ghost">退出</button>
+            <button id="logoutAccount" type="button" class="ghost" hidden>退出</button>
           </div>
           <button id="loginAccount" type="button" class="secondary">登录 YouTube</button>
           <div class="noticeBar">
