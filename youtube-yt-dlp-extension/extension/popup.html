@@ -19,13 +19,13 @@
         </div>
       </header>
 
-      <nav class="tabs" aria-label="页面">
-        <button id="resolveTab" class="tab active" type="button" data-view="resolve"><span class="tabIcon resolveIcon" aria-hidden="true"></span>解析选择</button>
-        <button id="tasksTab" class="tab" type="button" data-view="tasks"><span class="tabIcon tasksIcon" aria-hidden="true"></span>下载任务</button>
-        <button id="accountTab" class="tab" type="button" data-view="account"><span class="tabIcon accountIcon" aria-hidden="true"></span>账号</button>
+      <nav class="tabs" aria-label="页面" role="tablist">
+        <button id="resolveTab" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="resolveView" tabindex="0" data-view="resolve"><span class="tabIcon resolveIcon" aria-hidden="true"></span>解析选择</button>
+        <button id="tasksTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="tasksView" tabindex="-1" data-view="tasks"><span class="tabIcon tasksIcon" aria-hidden="true"></span>下载任务</button>
+        <button id="accountTab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="accountView" tabindex="-1" data-view="account"><span class="tabIcon accountIcon" aria-hidden="true"></span>账号</button>
       </nav>
 
-      <section id="resolveView" class="view active">
+      <section id="resolveView" class="view active" role="tabpanel" aria-labelledby="resolveTab">
         <section class="nowPlaying" aria-label="当前页面">
           <span class="nowIcon" aria-hidden="true"></span>
           <div>
@@ -35,10 +35,34 @@
         </section>
 
         <section class="panel">
+          <div class="panelBlock">
+            <div class="blockHead">
+              <span class="stepBadge">1</span>
+              <div>
+                <strong>链接来源</strong>
+                <p>先确认当前页面或手动粘贴链接。</p>
+              </div>
+            </div>
+            <div class="sourceActions">
+              <button id="useCurrentPage" type="button" class="ghost actionChip">使用当前页面</button>
+              <button id="clearUrl" type="button" class="ghost actionChip">清空链接</button>
+            </div>
+          </div>
+
           <div class="fieldRow">
             <label for="url">YouTube 链接</label>
             <input id="url" type="text" spellcheck="false">
             <p class="fieldHint">会自动读取当前标签页，也可以手动粘贴视频或合集链接。</p>
+          </div>
+
+          <div class="panelBlock">
+            <div class="blockHead">
+              <span class="stepBadge">2</span>
+              <div>
+                <strong>下载预设</strong>
+                <p>先决定保存位置和默认画质，再解析视频列表。</p>
+              </div>
+            </div>
           </div>
 
           <div class="fieldRow">
@@ -48,8 +72,18 @@
           </div>
 
           <div class="fieldRow">
-            <label for="quality">画质</label>
-            <select id="quality">
+            <div class="labelRow">
+              <label for="quality">画质</label>
+              <span class="inlineHint">快捷选择</span>
+            </div>
+            <div id="qualityPresets" class="qualityPresets" aria-label="画质预设">
+              <button type="button" class="qualityChip active" data-quality="best-mp4">最佳 MP4</button>
+              <button type="button" class="qualityChip" data-quality="1080">1080p</button>
+              <button type="button" class="qualityChip" data-quality="720">720p</button>
+              <button type="button" class="qualityChip" data-quality="480">480p</button>
+              <button type="button" class="qualityChip" data-quality="audio">MP3</button>
+            </div>
+            <select id="quality" class="qualitySelect">
               <option value="best-mp4">最佳单文件 MP4</option>
               <option value="1080">最高 1080p</option>
               <option value="720">最高 720p</option>
@@ -70,25 +104,31 @@
               <p id="resolveSummary">还没有解析视频。</p>
               <div id="resolveChips" class="summaryChips"></div>
             </div>
-            <label class="selectAll"><input id="selectAll" type="checkbox"> 全选</label>
+            <div class="selectionTools">
+              <p id="selectionMeta" class="selectionMeta">未选择视频</p>
+              <label class="selectAll"><input id="selectAll" type="checkbox"> 全选</label>
+            </div>
           </div>
-          <button id="downloadSelected" type="button" disabled>下载选中视频</button>
+          <div class="actionDock">
+            <button id="downloadSelected" type="button" disabled>下载选中视频</button>
+          </div>
           <div id="videoList" class="videoList"></div>
         </section>
       </section>
 
-      <section id="tasksView" class="view">
+      <section id="tasksView" class="view" role="tabpanel" aria-labelledby="tasksTab" hidden>
         <section class="tasks">
           <div class="tasksHead">
             <h2>下载任务</h2>
             <button id="refresh" type="button" class="ghost">刷新</button>
           </div>
           <div id="taskSummary" class="summaryChips taskSummary"></div>
+          <section id="taskOverview" class="taskOverview" aria-label="任务总览"></section>
           <div id="tasksList" class="tasksList"></div>
         </section>
       </section>
 
-      <section id="accountView" class="view">
+      <section id="accountView" class="view" role="tabpanel" aria-labelledby="accountTab" hidden>
         <section class="accountPanel">
           <div class="sectionHead">
             <div>
