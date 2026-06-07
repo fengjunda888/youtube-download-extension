@@ -12,10 +12,10 @@
         <span class="mark" aria-hidden="true"></span>
         <div class="titleBlock">
           <div class="titleRow">
-            <h1>YouTube 下载助手</h1>
+            <h1>YouTube</h1>
             <span id="version" class="version">v0.2.1</span>
           </div>
-          <p>本地下载 · by fengjunda888</p>
+          <p>下载助手 · 本地 yt-dlp</p>
         </div>
       </header>
 
@@ -30,13 +30,13 @@
           <div class="panelBlock">
             <div class="blockHead">
               <div>
-                <strong>视频链接</strong>
-                <p>从当前 YouTube 页面识别视频，选择后添加到下载。</p>
+                <strong>检测视频</strong>
+                <p>粘贴链接，或直接读取当前 YouTube 页面。</p>
               </div>
             </div>
             <div class="sourceActions">
-              <button id="useCurrentPage" type="button" class="ghost actionChip">使用当前页面</button>
-              <button id="clearUrl" type="button" class="ghost actionChip">清空链接</button>
+              <button id="useCurrentPage" type="button" class="ghost actionChip">当前页面</button>
+              <button id="clearUrl" type="button" class="ghost actionChip">清空</button>
             </div>
           </div>
 
@@ -53,7 +53,7 @@
             </div>
             <div id="qualityPresets" class="qualityPresets" aria-label="画质预设">
               <button type="button" class="qualityChip active" data-quality="best-mp4" aria-pressed="true">最佳 MP4</button>
-              <button type="button" class="qualityChip" data-quality="1080" aria-pressed="false">1080p</button>
+              <button type="button" class="qualityChip" data-quality="1080" aria-pressed="false">1080p HD</button>
               <button type="button" class="qualityChip" data-quality="720" aria-pressed="false">720p</button>
               <button type="button" class="qualityChip" data-quality="480" aria-pressed="false">480p</button>
               <button type="button" class="qualityChip" data-quality="audio" aria-pressed="false">MP3</button>
@@ -109,7 +109,10 @@
       <section id="tasksView" class="view" role="tabpanel" aria-labelledby="tasksTab" hidden>
         <section class="tasks">
           <div class="tasksHead">
-            <h2>下载任务</h2>
+            <div>
+              <h2>下载任务</h2>
+              <p>查看进度、速度和最近输出。</p>
+            </div>
             <button id="refresh" type="button" class="ghost">刷新</button>
           </div>
           <div id="taskSummary" class="summaryChips taskSummary" aria-label="任务摘要"></div>

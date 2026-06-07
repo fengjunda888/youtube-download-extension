@@ -59,9 +59,9 @@ main {
 .appHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 -16px 8px;
-  padding: 10px 18px 9px;
+  gap: 11px;
+  margin: 0 -16px 10px;
+  padding: 11px 18px 10px;
   border-bottom: 1px solid var(--line);
   background: #fff;
 }
@@ -108,10 +108,10 @@ p {
 }
 
 h1 {
-  font-size: 17px;
+  font-size: 20px;
   line-height: 1.1;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.35px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -144,12 +144,13 @@ p {
 }
 
 .version {
+  display: none;
   flex: 0 0 auto;
-  padding: 2px 8px 3px;
+  padding: 1px 7px 2px;
   border-radius: 999px;
   background: var(--soft);
   color: #4f4f4f;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -163,7 +164,7 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  margin: 0 -2px 14px;
+  margin: 0 -16px 14px;
   padding: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
@@ -271,14 +272,14 @@ select:focus-visible {
 }
 
 .tab {
-  height: 40px;
+  height: 42px;
   margin: 0;
   border: 0;
   background: transparent;
   color: var(--ink);
   box-shadow: none;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   position: relative;
   overflow: hidden;
@@ -331,7 +332,7 @@ select:focus-visible {
 .tab::after {
   content: "";
   position: absolute;
-  inset: auto 24px -1px;
+  inset: auto 28px -1px;
   height: 3px;
   border-radius: 999px;
   background: transparent;
@@ -419,7 +420,7 @@ button.small {
 }
 
 .panelBlock {
-  padding: 16px 16px 8px;
+  padding: 17px 16px 9px;
   background: #fff;
 }
 
@@ -440,7 +441,7 @@ button.small {
 .blockHead strong {
   display: block;
   line-height: 1.25;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -454,31 +455,31 @@ button.small {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 13px;
 }
 
 .actionChip,
 .qualityChip {
   width: auto;
   min-width: 0;
-  height: 34px;
+  height: 32px;
   margin-top: 0;
   padding: 0 14px;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   box-shadow: none;
 }
 
 .actionChip {
-  background: var(--soft);
+  background: #f2f2f2;
 }
 
 .qualityPresets {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 8px;
   margin-bottom: 0;
 }
 
@@ -525,7 +526,7 @@ button.small {
 }
 
 .fieldRow {
-  padding: 12px 16px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -704,8 +705,8 @@ textarea,
 input,
 select {
   width: 100%;
-  border: 1px solid #cfcfcf;
-  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
   color: var(--ink);
   background: #fff;
   outline: 0;
@@ -736,8 +737,8 @@ textarea {
 
 input,
 select {
-  height: 43px;
-  padding: 0 12px;
+  height: 42px;
+  padding: 0 15px;
 }
 
 textarea:focus,
@@ -745,7 +746,7 @@ input:focus,
 select:focus {
   border-color: var(--focus);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(6, 95, 212, 0.12);
+  box-shadow: 0 0 0 2px rgba(6, 95, 212, 0.14);
 }
 
 textarea + label,
@@ -843,6 +844,12 @@ select + label {
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 2px;
+}
+
+.tasksHead p {
+  margin-top: 3px;
+  color: #606060;
+  font-size: 12px;
 }
 
 .sectionHead > div {
@@ -1002,7 +1009,7 @@ select + label {
 .compactList {
   display: grid;
   gap: 0;
-  margin-top: 9px;
+  margin-top: 10px;
   border-top: 1px solid var(--line-soft);
 }
 
@@ -1149,7 +1156,7 @@ select + label {
 .videoItem {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
+  gap: 12px;
   margin: 0;
   color: var(--ink);
   position: relative;
@@ -1194,7 +1201,7 @@ select + label {
 }
 
 .videoThumbWrap {
-  width: 136px;
+  width: 140px;
 }
 
 .miniThumbWrap {
@@ -1213,8 +1220,8 @@ select + label {
 }
 
 .videoThumb {
-  width: 136px;
-  height: 77px;
+  width: 140px;
+  height: 79px;
   aspect-ratio: 16 / 9;
 }
 
