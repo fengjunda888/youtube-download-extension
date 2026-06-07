@@ -1,15 +1,34 @@
 ﻿# YouTube yt-dlp Downloader
 
-A Chrome extension for sending YouTube videos and playlists to a local `yt-dlp` native host. It supports Windows and macOS, uses Chrome Native Messaging, and does not require a long-running local web server.
+A clean YouTube-style Chrome extension that sends videos and playlists to a local `yt-dlp` download component through Chrome Native Messaging. It supports Windows and macOS, shows download progress in the popup, and does not require a long-running local web server.
 
-中文：一个基于 `yt-dlp` 的 YouTube 视频下载 Chrome 扩展，支持 Windows 和 macOS，支持视频解析、合集解析、多选下载、全选、画质选择、下载进度显示和音频 MP3 提取。
+中文：一个基于 `yt-dlp` 的 YouTube 视频下载 Chrome 扩展，界面接近 YouTube 官方风格，支持 Windows 和 macOS，支持视频解析、合集解析、多选下载、全选、画质选择、下载进度显示和音频 MP3 提取。
 
 Author: [fengjunda888](https://github.com/fengjunda888)
 
 Keywords: YouTube download extension, YouTube video downloader, yt-dlp Chrome extension, youtube-dl, playlist downloader, 视频下载, YouTube 视频下载, 油管视频下载, YouTube 下载插件, Chrome 下载扩展.
 
+## Highlights
+
+- YouTube-style popup UI with a light, familiar layout.
+- Resolve a video or playlist before downloading, then choose exactly what to save.
+- Multi-select and select-all support for playlist results.
+- Quality presets for best MP4, 1080p, 720p, 480p, and MP3 audio.
+- Live task list with status, progress, speed, ETA, and recent `yt-dlp` output.
+- Optional account tab for YouTube playlists, liked videos, and recent local Chrome history.
+
+## Screenshots
+
+### Detect videos
+
 ![Ready state](docs/screenshots/popup-ready.png)
+
+### Track downloads
+
 ![Task list](docs/screenshots/popup-tasks.png)
+
+### Optional account tab
+
 ![Account tab](docs/screenshots/popup-account.png)
 
 ## Features
@@ -164,6 +183,13 @@ On macOS, if no directory is provided by the popup, the native host defaults to:
 ~/Desktop/youtube videos
 ```
 
+## Privacy notes
+
+- Downloading is handled locally by the native host and `yt-dlp`.
+- The extension does not run a local web server.
+- Optional YouTube account features use Chrome identity/OAuth.
+- Recent watch-page suggestions come from local Chrome history permission.
+
 ## Release packaging
 
 Create a release zip on Windows:
@@ -182,6 +208,11 @@ native-host/    .NET Native Messaging host
 scripts/        Release packaging scripts
 docs/           Screenshots and documentation assets
 ```
+
+## Links
+
+- GitHub: [youtube-download-extension](https://github.com/fengjunda888/youtube-download-extension)
+- Linux.do: [linux.do](https://linux.do)
 
 ## License
 
