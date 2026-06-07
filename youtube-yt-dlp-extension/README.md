@@ -209,6 +209,11 @@ scripts/        Release packaging scripts
 docs/           Screenshots and documentation assets
 ```
 
+## Links
+
+- GitHub: [youtube-download-extension](https://github.com/fengjunda888/youtube-download-extension)
+- Linux.do: [linux.do](https://linux.do)
+
 ## License
 
 MIT
