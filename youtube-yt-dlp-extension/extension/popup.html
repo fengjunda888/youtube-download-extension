@@ -31,7 +31,7 @@
             <div class="blockHead">
               <div>
                 <strong>检测视频</strong>
-                <p>粘贴链接，或直接读取当前 YouTube 页面。</p>
+                <p>粘贴链接，或直接读取当前打开的 YouTube 页面。</p>
               </div>
             </div>
             <div class="sourceActions">
@@ -140,19 +140,32 @@
 
         <section class="accountList">
           <div class="sectionHead">
-            <h2>最近浏览</h2>
+            <div>
+              <h2>最近浏览</h2>
+              <p class="sectionSubtext">从浏览器历史中读取最近打开过的 YouTube 内容。</p>
+            </div>
             <button id="loadAccount" type="button" class="ghost">刷新</button>
           </div>
           <div id="recentList" class="compactList" role="list" aria-label="最近浏览列表"></div>
         </section>
 
         <section class="accountList">
-          <h2>喜欢的视频</h2>
+          <div class="sectionHead">
+            <div>
+              <h2>喜欢的视频</h2>
+              <p class="sectionSubtext">已授权时，这里会显示可快速送去检测的喜欢内容。</p>
+            </div>
+          </div>
           <div id="likedList" class="compactList" role="list" aria-label="喜欢的视频列表"></div>
         </section>
 
         <section class="accountList">
-          <h2>播放列表 / 收藏</h2>
+          <div class="sectionHead">
+            <div>
+              <h2>播放列表 / 收藏</h2>
+              <p class="sectionSubtext">适合把教程合集、收藏夹和稍后再看内容直接送去检测。</p>
+            </div>
+          </div>
           <div id="playlistList" class="compactList" role="list" aria-label="播放列表和收藏列表"></div>
         </section>
       </section>
