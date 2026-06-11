@@ -1557,6 +1557,8 @@ select + label {
 
 .taskActions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: 12px;
 }
@@ -1568,6 +1570,31 @@ select + label {
   background: #f2f2f2;
   color: #0f0f0f;
   font-weight: 700;
+}
+
+.taskBulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.taskBulkActions .ghost.small {
+  min-height: 30px;
+  padding: 0 12px;
+  background: #f2f2f2;
+  color: #0f0f0f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.taskBulkActions .ghost.danger:not(:disabled) {
+  color: var(--accent);
+}
+
+.taskBulkActions .ghost:disabled {
+  color: var(--muted);
+  opacity: 0.58;
 }
 
 .accountCard {

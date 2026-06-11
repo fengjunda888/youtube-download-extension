@@ -1,14 +1,20 @@
 const defaultDownloadDir = "%USERPROFILE%\\Desktop\\youtube videos";
 const downloadDirStorageKey = "ytDlpDownloadDir";
+const useBrowserCookiesStorageKey = "ytDlpUseBrowserCookies";
+const recentTasksStorageKey = "ytDlpRecentTasks";
 
 const urlInput = document.getElementById("url");
 const urlHint = document.getElementById("urlHint");
 const downloadDirInput = document.getElementById("downloadDir");
 const qualityInput = document.getElementById("quality");
+const useBrowserCookiesInput = document.getElementById("useBrowserCookies");
 const statusText = document.getElementById("status");
 const resolveButton = document.getElementById("resolve");
 const downloadSelectedButton = document.getElementById("downloadSelected");
 const refreshButton = document.getElementById("refresh");
+const clearFinishedTasksButton = document.getElementById("clearFinishedTasks");
+const retryFailedTasksButton = document.getElementById("retryFailedTasks");
+const cancelActiveTasksButton = document.getElementById("cancelActiveTasks");
 const tasksList = document.getElementById("tasksList");
 const taskSummary = document.getElementById("taskSummary");
 const taskOverview = document.getElementById("taskOverview");
@@ -98,6 +104,20 @@ const previewTasks = [
     lastLine: "[ExtractAudio] Destination: sample-track.mp3"
   }
 ];
+const previewStalledTasks = [
+  {
+    id: "demo-stalled",
+    status: "starting",
+    percent: 0,
+    quality: "1080",
+    playlistMode: "single",
+    speed: "",
+    eta: "",
+    lastLine: "",
+    startedAt: new Date(Date.now() - 28000).toISOString(),
+    updatedAt: new Date(Date.now() - 28000).toISOString()
+  }
+];
 const previewAccount = {
   channel: {
     title: "fengjunda888",
@@ -121,6 +141,9 @@ let pollTimer;
 let resolvedVideos = [];
 let previewMode = "";
 let oauthConfigured = true;
+let latestTasks = [];
+const hiddenFinishedTaskIds = new Set();
+let showingRecentTasks = false;
 
 function setStatus(message, state = "") {
   statusText.textContent = message;
@@ -142,7 +165,7 @@ function setButtonBusy(button, busy, label = "") {
   }
 }
 
-function setView(name) {
+function setView(name, options = {}) {
   for (const [viewName, element] of Object.entries(views)) {
     const active = viewName === name;
     element.classList.toggle("active", active);
@@ -154,7 +177,7 @@ function setView(name) {
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
   });
-  if (name === "tasks") {
+  if (name === "tasks" && !options.skipRefresh) {
     refreshTasks({ silent: true });
     startPolling();
   }
@@ -173,6 +196,15 @@ async function sendNative(payload) {
     throw new Error(result.response.error || "Native host rejected the request.");
   }
   return result.response;
+}
+
+function sendNativeWithTimeout(payload, timeoutMs = 8000) {
+  return Promise.race([
+    sendNative(payload),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Native host request timed out.")), timeoutMs);
+    })
+  ]);
 }
 
 async function sendAccount(payload) {
@@ -195,9 +227,12 @@ async function sendAccount(payload) {
   return result.response;
 }
 
-async function getActiveTabUrl() {
+async function getActiveTabInfo() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tab?.url || "";
+  return {
+    url: tab?.url || "",
+    title: tab?.title || ""
+  };
 }
 
 function isYouTubeUrl(value) {
@@ -207,6 +242,52 @@ function isYouTubeUrl(value) {
   } catch {
     return false;
   }
+}
+
+function getYouTubeVideoId(value) {
+  try {
+    const url = new URL(value);
+    if (url.hostname === "youtu.be") {
+      return url.pathname.split("/").filter(Boolean)[0] || "";
+    }
+    if (["youtube.com", "www.youtube.com", "m.youtube.com"].includes(url.hostname)) {
+      return url.searchParams.get("v") || "";
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+function needsNativeResolve(value) {
+  try {
+    const url = new URL(value);
+    return url.pathname.includes("/playlist") || !getYouTubeVideoId(value);
+  } catch {
+    return true;
+  }
+}
+
+function cleanYouTubeTitle(title) {
+  return String(title || "")
+    .replace(/\s*-\s*YouTube$/i, "")
+    .trim();
+}
+
+function quickVideoFromUrl(value, title = "") {
+  const id = getYouTubeVideoId(value);
+  if (!id) {
+    return null;
+  }
+  return {
+    id,
+    url: `https://www.youtube.com/watch?v=${id}`,
+    title: cleanYouTubeTitle(title) || "YouTube 视频",
+    uploader: "YouTube",
+    thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    duration: "",
+    index: 1
+  };
 }
 
 function syncUrlHint() {
@@ -245,6 +326,10 @@ function getDownloadDir() {
   return downloadDirInput.value.trim() || defaultDownloadDir;
 }
 
+function getUseBrowserCookies() {
+  return useBrowserCookiesInput ? useBrowserCookiesInput.checked : false;
+}
+
 function syncQualityPreset(value) {
   qualityPresets.forEach(button => {
     const active = button.dataset.quality === value;
@@ -262,11 +347,23 @@ async function resolveCurrentUrl() {
 
   localStorage.setItem(downloadDirStorageKey, getDownloadDir());
   setButtonBusy(resolveButton, true, "正在检测...");
-  setStatus("正在检测视频信息...", "busy");
-  renderResolvingState();
+  const activeTabInfo = previewMode ? { url: "", title: "" } : await getActiveTabInfo();
+  const inputVideoId = getYouTubeVideoId(url);
+  const activeVideoId = getYouTubeVideoId(activeTabInfo.url);
+  const quickTitle = inputVideoId && inputVideoId === activeVideoId ? activeTabInfo.title : "";
+  const quickVideo = needsNativeResolve(url) ? null : quickVideoFromUrl(url, quickTitle);
+  if (quickVideo) {
+    resolvedVideos = [quickVideo];
+    renderVideos(resolvedVideos);
+    setStatus("已识别 1 个视频，可直接添加。", "success");
+    setButtonBusy(resolveButton, false);
+    return;
+  }
 
   try {
-    const response = await sendNative({ action: "resolve", url });
+    setStatus("正在检测视频信息...", "busy");
+    renderResolvingState();
+    const response = await sendNative({ action: "resolve", url, useBrowserCookies: getUseBrowserCookies() });
     resolvedVideos = response.videos || [];
     renderVideos(resolvedVideos);
     setStatus(resolvedVideos.length ? `已找到 ${resolvedVideos.length} 个视频。` : "没有找到可用视频，请检查链接或稍后重试。", resolvedVideos.length ? "success" : "error");
@@ -290,23 +387,26 @@ async function downloadSelectedVideos() {
   localStorage.setItem(downloadDirStorageKey, downloadDir);
   setButtonBusy(downloadSelectedButton, true, `正在添加（${selected.length}）...`);
   setStatus(`正在添加 ${selected.length} 个下载任务...`, "busy");
+  setView("tasks", { skipRefresh: true });
+  startPolling();
+  renderQueueingState(selected.length);
 
-  let successCount = 0;
-  let lastError = "";
-  for (const video of selected) {
-    try {
-      await sendNative({
+  const results = await Promise.allSettled(
+    selected.map(video =>
+      sendNativeWithTimeout({
         action: "start",
         url: video.url,
         downloadDir,
         quality: qualityInput.value,
-        playlistMode: "single"
-      });
-      successCount += 1;
-    } catch (error) {
-      lastError = friendlyError(error);
-    }
-  }
+        playlistMode: "single",
+        useBrowserCookies: getUseBrowserCookies()
+      }, 7000)
+    )
+  );
+
+  const successCount = results.filter(result => result.status === "fulfilled").length;
+  const failed = results.find(result => result.status === "rejected");
+  const lastError = failed ? friendlyError(failed.reason) : "";
 
   if (lastError && !successCount) {
     setStatus(`下载任务未添加：${lastError}`, "error");
@@ -318,8 +418,37 @@ async function downloadSelectedVideos() {
   setButtonBusy(downloadSelectedButton, false);
   updateSelectionState();
   await refreshTasks({ silent: true });
-  setView("tasks");
 }
+
+function renderQueueingState(count) {
+  taskSummary.innerHTML = `
+    <span>${count} 个任务</span>
+    <span>正在加入队列</span>
+  `;
+  taskOverview.hidden = false;
+  taskOverview.innerHTML = `
+    <div class="overviewHead">
+      <strong>正在加入下载队列</strong>
+      <span>请稍等</span>
+    </div>
+    <div class="bar indeterminate" role="progressbar" aria-label="正在加入下载队列"><span></span></div>
+    <div class="overviewMeta">
+      <span>已发送 ${count} 个下载请求</span>
+      <span>正在等待本地组件确认</span>
+    </div>
+  `;
+  tasksList.innerHTML = `
+    <div class="loadingState" role="status" aria-live="polite">
+      <span class="loadingIcon" aria-hidden="true"></span>
+      <div>
+        <strong>正在启动下载</strong>
+        <span>任务会在确认后显示进度。</span>
+        <span class="loadingBar" aria-hidden="true"><span></span></span>
+      </div>
+    </div>
+  `;
+}
+
 
 async function refreshTasks({ silent = false } = {}) {
   if (!silent) {
@@ -338,11 +467,19 @@ async function refreshTasks({ silent = false } = {}) {
     const response = await sendNative({ action: "list" });
     renderTasks(response.tasks || []);
   } catch (error) {
-    tasksList.innerHTML = emptyState("下载助手未连接", friendlyError(error), "error", {
-      label: "重试",
-      action: "refresh-tasks"
-    });
-    bindEmptyActions(tasksList);
+    const recentTasks = loadRecentTasks();
+    if (recentTasks.length) {
+      renderTasks(recentTasks, {
+        recent: true,
+        notice: `下载助手未连接，下面是最近任务：${friendlyError(error)}`
+      });
+    } else {
+      tasksList.innerHTML = emptyState("下载助手未连接", friendlyError(error), "error", {
+        label: "重试",
+        action: "refresh-tasks"
+      });
+      bindEmptyActions(tasksList);
+    }
   } finally {
     if (!silent) {
       setButtonBusy(refreshButton, false);
@@ -362,6 +499,182 @@ async function cancelTask(id, button = null) {
     if (button) {
       setButtonBusy(button, false);
     }
+  }
+}
+
+function taskId(task) {
+  return String(task.Id || task.id || "");
+}
+
+function taskStatus(task) {
+  return task.Status || task.status || "unknown";
+}
+
+function isActiveTask(task) {
+  return ["running", "starting"].includes(taskStatus(task));
+}
+
+function isFinishedTask(task) {
+  return ["done", "canceled"].includes(taskStatus(task));
+}
+
+function isFailedTask(task) {
+  return taskStatus(task) === "error";
+}
+
+function taskUrl(task) {
+  return task.Url || task.url || "";
+}
+
+function taskDownloadDir(task) {
+  return task.DownloadDir || task.downloadDir || getDownloadDir();
+}
+
+function taskQuality(task) {
+  return task.Quality || task.quality || qualityInput.value || "best-mp4";
+}
+
+function taskPlaylistMode(task) {
+  return task.PlaylistMode || task.playlistMode || "single";
+}
+
+function visibleTasksForRender(tasks) {
+  return tasks.filter(task => !hiddenFinishedTaskIds.has(taskId(task)));
+}
+
+function rememberRecentTasks(tasks) {
+  if (previewMode || !tasks.length) {
+    return;
+  }
+  const recent = tasks.slice(0, 30).map(task => ({
+    id: taskId(task),
+    url: taskUrl(task),
+    downloadDir: taskDownloadDir(task),
+    quality: taskQuality(task),
+    playlistMode: taskPlaylistMode(task),
+    status: taskStatus(task),
+    percent: Math.max(0, Math.min(100, Number(task.Percent || task.percent || 0))),
+    speed: task.Speed || task.speed || "",
+    eta: task.Eta || task.eta || "",
+    lastLine: task.LastLine || task.lastLine || task.Message || task.message || "",
+    updatedAt: task.UpdatedAt || task.updatedAt || new Date().toISOString()
+  }));
+  localStorage.setItem(recentTasksStorageKey, JSON.stringify(recent));
+}
+
+function loadRecentTasks() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(recentTasksStorageKey) || "[]");
+    return Array.isArray(parsed) ? parsed.filter(task => task?.id || task?.url).slice(0, 30) : [];
+  } catch {
+    return [];
+  }
+}
+
+function syncTaskBulkActions(tasks = latestTasks) {
+  const finishedCount = tasks.filter(task => isFinishedTask(task) && !hiddenFinishedTaskIds.has(taskId(task))).length;
+  const failedCount = tasks.filter(isFailedTask).length;
+  const activeCount = tasks.filter(isActiveTask).length;
+
+  clearFinishedTasksButton.disabled = finishedCount === 0;
+  retryFailedTasksButton.disabled = failedCount === 0;
+  cancelActiveTasksButton.disabled = activeCount === 0;
+
+  clearFinishedTasksButton.textContent = finishedCount ? `清空已完成（${finishedCount}）` : "清空已完成";
+  retryFailedTasksButton.textContent = failedCount ? `重试失败（${failedCount}）` : "重试失败";
+  cancelActiveTasksButton.textContent = activeCount ? `全部取消（${activeCount}）` : "全部取消";
+}
+
+function clearFinishedTasks() {
+  latestTasks.filter(isFinishedTask).forEach(task => {
+    const id = taskId(task);
+    if (id) {
+      hiddenFinishedTaskIds.add(id);
+    }
+  });
+  renderTasks(latestTasks);
+  setStatus("已隐藏完成和取消的任务。", "success");
+}
+
+async function retryFailedTasks() {
+  const failedTasks = latestTasks.filter(task => isFailedTask(task) && taskUrl(task));
+  if (!failedTasks.length) {
+    setStatus("没有可重试的失败任务。", "error");
+    return;
+  }
+
+  setButtonBusy(retryFailedTasksButton, true, `重试中（${failedTasks.length}）...`);
+  try {
+    const results = await Promise.allSettled(failedTasks.map(task =>
+      sendNativeWithTimeout({
+        action: "start",
+        url: taskUrl(task),
+        downloadDir: taskDownloadDir(task),
+        quality: taskQuality(task),
+        playlistMode: taskPlaylistMode(task),
+        useBrowserCookies: getUseBrowserCookies()
+      }, 7000)
+    ));
+    const successCount = results.filter(result => result.status === "fulfilled").length;
+    const failed = results.find(result => result.status === "rejected");
+    if (failed && !successCount) {
+      setStatus(`重试未添加：${friendlyError(failed.reason)}`, "error");
+    } else if (failed) {
+      setStatus(`已重试 ${successCount} 个任务，部分未添加：${friendlyError(failed.reason)}`, "error");
+    } else {
+      setStatus(`已重新添加 ${successCount} 个失败任务。`, "success");
+    }
+    await refreshTasks({ silent: true });
+  } finally {
+    setButtonBusy(retryFailedTasksButton, false);
+    syncTaskBulkActions();
+  }
+}
+
+async function cancelActiveTasks() {
+  const activeTasks = latestTasks.filter(isActiveTask);
+  if (!activeTasks.length) {
+    setStatus("没有正在进行的任务。", "error");
+    return;
+  }
+  if (!window.confirm(`确定取消 ${activeTasks.length} 个正在进行的下载任务吗？`)) {
+    return;
+  }
+
+  setButtonBusy(cancelActiveTasksButton, true, `取消中（${activeTasks.length}）...`);
+  try {
+    const results = await Promise.allSettled(activeTasks.map(task => sendNative({ action: "cancel", id: taskId(task) })));
+    const successCount = results.filter(result => result.status === "fulfilled").length;
+    const failed = results.find(result => result.status === "rejected");
+    if (failed) {
+      setStatus(`已取消 ${successCount} 个任务，部分失败：${friendlyError(failed.reason)}`, "error");
+    } else {
+      setStatus(`已取消 ${successCount} 个任务。`, "success");
+    }
+    await refreshTasks({ silent: true });
+  } finally {
+    setButtonBusy(cancelActiveTasksButton, false);
+    syncTaskBulkActions();
+  }
+}
+
+async function copyTaskUrl(url, button) {
+  if (!url) {
+    setStatus("这个任务没有可复制的链接。", "error");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    setStatus("已复制任务链接。", "success");
+    if (button) {
+      const previous = button.textContent;
+      button.textContent = "已复制";
+      setTimeout(() => {
+        button.textContent = previous;
+      }, 1200);
+    }
+  } catch {
+    setStatus(url, "success");
   }
 }
 
@@ -477,7 +790,20 @@ function renderResolvingState() {
   updateSelectionState();
 }
 
-function renderTasks(tasks) {
+function renderTasks(tasks, options = {}) {
+  showingRecentTasks = Boolean(options.recent);
+  latestTasks = tasks;
+  if (!showingRecentTasks) {
+    rememberRecentTasks(tasks);
+  }
+  hiddenFinishedTaskIds.forEach(id => {
+    if (!tasks.some(task => taskId(task) === id)) {
+      hiddenFinishedTaskIds.delete(id);
+    }
+  });
+  syncTaskBulkActions(tasks);
+  const visibleTasks = visibleTasksForRender(tasks);
+
   if (!tasks.length) {
     taskSummary.innerHTML = "";
     taskOverview.hidden = true;
@@ -490,22 +816,41 @@ function renderTasks(tasks) {
     return;
   }
 
-  const runningCount = tasks.filter(task => ["running", "starting"].includes(task.Status || task.status)).length;
-  const doneCount = tasks.filter(task => (task.Status || task.status) === "done").length;
-  const averageProgress = tasks.reduce((sum, task) => sum + Math.max(0, Math.min(100, Number(task.Percent || task.percent || 0))), 0) / tasks.length;
-  const latestTask = tasks.find(task => ["running", "starting"].includes(task.Status || task.status)) || tasks[0];
+  if (!visibleTasks.length) {
+    taskSummary.innerHTML = `
+      <span>${tasks.length} 个任务</span>
+      <span>已隐藏完成任务</span>
+    `;
+    taskOverview.hidden = true;
+    taskOverview.innerHTML = "";
+    tasksList.innerHTML = emptyState("已清空当前列表", "已完成和已取消的任务已隐藏；刷新后仍可从本地组件读取最新状态。", "", {
+      label: "刷新任务",
+      action: "refresh-tasks"
+    });
+    bindEmptyActions(tasksList);
+    return;
+  }
+
+  const runningCount = visibleTasks.filter(isActiveTask).length;
+  const doneCount = visibleTasks.filter(task => taskStatus(task) === "done").length;
+  const errorCount = visibleTasks.filter(isFailedTask).length;
+  const averageProgress = visibleTasks.reduce((sum, task) => sum + Math.max(0, Math.min(100, Number(task.Percent || task.percent || 0))), 0) / visibleTasks.length;
+  const latestTask = visibleTasks.find(isActiveTask) || visibleTasks[0];
   const latestLine = latestTask?.LastLine || latestTask?.lastLine || latestTask?.Message || latestTask?.message || "等待新的下载任务。";
   const latestSpeed = latestTask?.Speed || latestTask?.speed || "";
   const latestEta = latestTask?.Eta || latestTask?.eta || "";
+  const stalledCount = visibleTasks.filter(isTaskStalled).length;
   taskSummary.innerHTML = `
-    <span>${tasks.length} 个任务</span>
+    <span>${visibleTasks.length} 个任务</span>
     <span>${runningCount} 个进行中</span>
     <span>${doneCount} 个已完成</span>
+    ${errorCount ? `<span>${errorCount} 个失败</span>` : ""}
+    ${stalledCount ? `<span>${stalledCount} 个等待较久</span>` : ""}
   `;
   taskOverview.hidden = false;
   taskOverview.innerHTML = `
     <div class="overviewHead">
-      <strong>下载概览</strong>
+      <strong>${showingRecentTasks ? "最近任务" : "下载概览"}</strong>
       <span>总进度 ${averageProgress.toFixed(averageProgress ? 1 : 0)}%</span>
     </div>
     <div class="bar" role="progressbar" aria-label="总进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${averageProgress.toFixed(1)}"><span style="width:${averageProgress}%"></span></div>
@@ -514,19 +859,22 @@ function renderTasks(tasks) {
       <span>${latestSpeed ? `速度 ${escapeHtml(latestSpeed)}` : "等待速度信息"}</span>
       <span>${latestEta ? `剩余 ${escapeHtml(latestEta)}` : "等待剩余时间"}</span>
     </div>
-    <p class="fieldHint">${escapeHtml(latestLine)}</p>
+    <p class="fieldHint">${escapeHtml(options.notice || (stalledCount ? "如果长时间没有速度，通常是 yt-dlp、网络或代理正在等待 YouTube 响应。" : latestLine))}</p>
   `;
 
-  tasksList.innerHTML = tasks.map(task => {
+  tasksList.innerHTML = visibleTasks.map(task => {
     const percent = Math.max(0, Math.min(100, Number(task.Percent || task.percent || 0)));
     const status = task.Status || task.status || "unknown";
     const id = task.Id || task.id;
     const line = task.LastLine || task.lastLine || task.Message || task.message || "";
+    const displayLine = status === "error" ? friendlyError(line) : line;
     const eta = task.Eta || task.eta || "";
     const speed = task.Speed || task.speed || "";
     const quality = task.Quality || task.quality || "";
-    const canCancel = status === "running" || status === "starting";
-    const phase = taskPhaseText(status, percent);
+    const canCancel = !showingRecentTasks && (status === "running" || status === "starting");
+    const url = taskUrl(task);
+    const stalled = isTaskStalled(task);
+    const phase = taskPhaseText(status, percent, stalled);
     const taskTitle = `${statusTextFor(status)}，进度 ${percent.toFixed(percent ? 1 : 0)}%`;
 
     return `
@@ -545,19 +893,53 @@ function renderTasks(tasks) {
           ${speed ? `<span class="metaChip subtle">${escapeHtml(speed)}</span>` : ""}
           ${eta ? `<span class="metaChip subtle">ETA ${escapeHtml(eta)}</span>` : ""}
         </div>
-        <div class="line">${escapeHtml(line)}</div>
-        ${canCancel ? `
-          <div class="taskActions">
-            <button class="ghost small" data-cancel="${escapeHtml(id)}">取消</button>
-          </div>
-        ` : ""}
+        <div class="line">${escapeHtml(stalled ? "启动等待较久：请检查网络、代理、yt-dlp 是否可访问 YouTube。" : displayLine)}</div>
+        <div class="taskActions">
+          ${url ? `<button class="ghost small" data-copy-task-url="${escapeHtml(url)}">复制链接</button>` : ""}
+          ${!showingRecentTasks && isFailedTask(task) && url ? `<button class="ghost small" data-retry-task="${escapeHtml(id)}">重试</button>` : ""}
+          ${canCancel ? `<button class="ghost small" data-cancel="${escapeHtml(id)}">取消</button>` : ""}
+        </div>
       </article>
     `;
   }).join("");
 
+  tasksList.querySelectorAll("[data-copy-task-url]").forEach(button => {
+    button.addEventListener("click", () => copyTaskUrl(button.dataset.copyTaskUrl, button));
+  });
+  tasksList.querySelectorAll("[data-retry-task]").forEach(button => {
+    button.addEventListener("click", () => retrySingleTask(button.dataset.retryTask, button));
+  });
   tasksList.querySelectorAll("[data-cancel]").forEach(button => {
     button.addEventListener("click", () => cancelTask(button.dataset.cancel, button));
   });
+}
+
+async function retrySingleTask(id, button = null) {
+  const task = latestTasks.find(item => taskId(item) === String(id));
+  if (!task || !taskUrl(task)) {
+    setStatus("没有找到可重试的任务链接。", "error");
+    return;
+  }
+  if (button) {
+    setButtonBusy(button, true, "重试中...");
+  }
+  try {
+    await sendNativeWithTimeout({
+      action: "start",
+      url: taskUrl(task),
+      downloadDir: taskDownloadDir(task),
+      quality: taskQuality(task),
+      playlistMode: taskPlaylistMode(task),
+      useBrowserCookies: getUseBrowserCookies()
+    }, 7000);
+    setStatus("已重新添加失败任务。", "success");
+    await refreshTasks({ silent: true });
+  } catch (error) {
+    setStatus(`重试未添加：${friendlyError(error)}`, "error");
+    if (button) {
+      setButtonBusy(button, false);
+    }
+  }
 }
 
 function renderAccount(data) {
@@ -612,7 +994,7 @@ function renderAccount(data) {
 
 function renderLinkList(container, items, mapItem) {
   if (!items.length) {
-    container.innerHTML = emptyState("暂无内容", "登录或刷新后，这里会显示可解析的 YouTube 项目。", "", {
+    container.innerHTML = emptyState("暂无内容", "登录或刷新后，这里会显示可检测的 YouTube 项目。", "", {
       label: "刷新",
       action: "load-account"
     });
@@ -759,10 +1141,22 @@ function qualityShortText(value) {
   }[value] || value;
 }
 
-function taskPhaseText(status, percent) {
+function isTaskStalled(task) {
+  const status = task.Status || task.status || "";
+  const percent = Number(task.Percent || task.percent || 0);
+  const line = task.LastLine || task.lastLine || "";
+  const updatedAt = Date.parse(task.UpdatedAt || task.updatedAt || task.StartedAt || task.startedAt || "");
+  if (!["running", "starting"].includes(status) || percent > 0 || line) {
+    return false;
+  }
+  return Number.isFinite(updatedAt) && Date.now() - updatedAt > 15000;
+}
+
+function taskPhaseText(status, percent, stalled = false) {
   if (status === "done") return "已保存到本地";
   if (status === "error") return "下载失败";
   if (status === "canceled") return "已取消任务";
+  if (stalled) return "等待 YouTube 响应";
   if (status === "starting") return "正在准备下载";
   if (percent >= 95) return "正在收尾合并";
   if (percent > 0) return "正在下载媒体";
@@ -778,6 +1172,18 @@ function progressText(status, percent) {
 
 function friendlyError(error) {
   const message = String(error?.message || error || "");
+  if (/Could not copy Chrome cookie database|cookie database|issues\/7271/i.test(message)) {
+    return "Chrome Cookie 读取失败。请关闭“使用浏览器登录状态”，按最初方式直接下载。";
+  }
+  if (/Netscape format cookies file|does not look like a Netscape/i.test(message)) {
+    return "浏览器 Cookie 临时文件格式错误，已修复为 yt-dlp 需要的格式。请重新加载扩展后再试。";
+  }
+  if (/confirm you.?re not a bot|confirm you're not a bot|cookies-from-browser|pass cookies|Sign in to confirm/i.test(message)) {
+    return "YouTube 要求登录确认。请保持 Chrome 已登录 YouTube，并开启“使用浏览器登录状态”后重试。";
+  }
+  if (/timed out|timeout/i.test(message)) {
+    return "本地下载组件响应太慢，请在下载任务页点刷新确认是否已开始。";
+  }
   if (/Native host|native host|disconnected|did not respond|rejected/i.test(message)) {
     return "本地下载组件未连接，请确认已安装并重新打开浏览器。";
   }
@@ -821,6 +1227,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const savedDir = localStorage.getItem(downloadDirStorageKey);
   downloadDirInput.value = savedDir || defaultDownloadDir;
+  useBrowserCookiesInput.checked = false;
+  localStorage.setItem(useBrowserCookiesStorageKey, "false");
   syncQualityPreset(qualityInput.value);
 
   if (previewMode) {
@@ -832,7 +1240,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       renderVideos(["tasks", "empty", "invalid"].includes(previewMode) ? [] : previewVideos);
     }
-    renderTasks(previewMode === "tasks" ? previewTasks : []);
+    renderTasks(previewMode === "tasks" ? previewTasks : previewMode === "stalled" ? previewStalledTasks : []);
+    if (previewMode === "queue") {
+      renderQueueingState(1);
+    }
     renderAccount(previewMode === "account" ? previewAccount : {});
     if (previewMode === "resolving") {
       setStatus("正在检测视频信息...", "busy");
@@ -841,11 +1252,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       setStatus("准备好了。", "success");
     }
-    setView(["tasks", "account"].includes(previewMode) ? previewMode : "resolve");
+    syncUrlHint();
+    const previewView = ["queue", "stalled"].includes(previewMode) ? "tasks" : ["tasks", "account"].includes(previewMode) ? previewMode : "resolve";
+    setView(previewView, { skipRefresh: ["queue", "stalled"].includes(previewMode) });
     return;
   }
 
-  const currentUrl = await getActiveTabUrl();
+  const currentTab = await getActiveTabInfo();
+  const currentUrl = currentTab.url;
   urlInput.value = currentUrl;
   syncUrlHint();
   setStatus(isYouTubeUrl(currentUrl) ? "准备好了。" : "请打开一个 YouTube 视频页。");
@@ -880,11 +1294,15 @@ selectAllInput.addEventListener("change", () => {
 resolveButton.addEventListener("click", resolveCurrentUrl);
 downloadSelectedButton.addEventListener("click", downloadSelectedVideos);
 refreshButton.addEventListener("click", refreshTasks);
+clearFinishedTasksButton.addEventListener("click", clearFinishedTasks);
+retryFailedTasksButton.addEventListener("click", retryFailedTasks);
+cancelActiveTasksButton.addEventListener("click", cancelActiveTasks);
 loginAccountButton.addEventListener("click", loadAccountData);
 loadAccountButton.addEventListener("click", loadAccountData);
 logoutAccountButton.addEventListener("click", logoutAccount);
 useCurrentPageButton.addEventListener("click", async () => {
-  const currentUrl = await getActiveTabUrl();
+  const currentTab = await getActiveTabInfo();
+  const currentUrl = currentTab.url;
   urlInput.value = currentUrl;
   syncUrlHint();
   setStatus(isYouTubeUrl(currentUrl) ? "已填入当前页面链接。" : "当前页面不是 YouTube 视频页。", isYouTubeUrl(currentUrl) ? "success" : "error");
@@ -908,6 +1326,10 @@ urlInput.addEventListener("keydown", event => {
 qualityInput.addEventListener("change", () => {
   syncQualityPreset(qualityInput.value);
   updateSelectionState();
+});
+useBrowserCookiesInput.addEventListener("change", () => {
+  localStorage.setItem(useBrowserCookiesStorageKey, String(useBrowserCookiesInput.checked));
+  setStatus(useBrowserCookiesInput.checked ? "已启用浏览器登录状态。" : "已关闭浏览器登录状态。", "success");
 });
 qualityPresets.forEach(button => {
   button.addEventListener("click", () => {

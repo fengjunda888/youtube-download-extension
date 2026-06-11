@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- Added task bulk actions in the popup for completed, failed, and active downloads.
+- Added per-task copy-link and retry actions without changing the download path.
+- Added recent task memory in the popup and a small author credit in the header.
+
 ## 0.2.1
 
 - Polished the popup with a cleaner YouTube-style layout.
